@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPETRO - Inspection Plan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PptxGenJS for PowerPoint Generation -->
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #1F2937; }
+        
+        /* --- Modern Scrollbar --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+
+        /* --- Sidebar & Layout --- */
+        :root { --ipetro-red: #C62828; }
+        
+        #sidebar { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-link { 
+            display: flex; align-items: center; padding: 10px 16px; 
+            color: #9CA3AF; text-decoration: none; border-radius: 8px;
+            margin: 4px 12px; transition: all 0.2s ease; 
+        }
+        .sidebar-link:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
+        .sidebar-link.active { 
+            background-color: var(--ipetro-red); 
+            color: #fff; 
+            box-shadow: 0 4px 12px rgba(198, 40, 40, 0.3);
+        }
+        
+        #sidebar.collapsed { width: 80px; }
+        #sidebar.collapsed .sidebar-text, #sidebar.collapsed .sidebar-section-title, #sidebar.collapsed .user-info-text, #sidebar.collapsed .logo-text { display: none; }
+        #sidebar.collapsed .sidebar-link { justify-content: center; padding: 12px 0; margin: 4px 8px; }
+        
+        @media (max-width: 768px) {
+            #sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 50; transform: translateX(-100%); width: 260px; }
+            #sidebar.mobile-open { transform: translateX(0); }
+            #mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 40; }
+            #mobile-overlay.active { display: block; }
+        }
+
+        /* --- Modal Transitions --- */
+        .modal { transition: opacity 0.2s ease-in-out; }
+        .modal-container { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); transform: scale(0.98); opacity: 0; }
+        .modal-active .modal-container { transform: scale(1); opacity: 1; }
+        body.modal-active { overflow: hidden; }
+
+        /* --- ROBUST PRINT FIXES --- */
+        @media print {
+            /* 1. Reset Body */
+            body, html { 
+                overflow: visible !important; 
+                height: auto !important; 
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+            }
+
+            /* 2. Hide Application UI */
+            #sidebar, #toggle-sidebar-btn, header, .flex-1 > main, #mobile-overlay { 
+                display: none !important; 
+            }
+
+            /* 3. Position Modal for Print */
+            #modal {
+                display: block !important;
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+                z-index: 9999 !important;
+                background: white !important;
+                padding: 0 !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+            }
+
+            /* 4. Reset Modal Container to Plain Div */
+            .modal-container {
+                position: relative !important;
+                box-shadow: none !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                transform: none !important;
+                border: none !important;
+                overflow: visible !important;
+                height: auto !important;
+                max-height: none !important;
+            }
+
+            /* 5. Ensure Content Area is Full Width */
+            #modal-print-area {
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow: visible !important;
+            }
+
+            /* 6. Hide Modal Header/Buttons */
+            #modal-header, .modal-overlay { 
+                display: none !important; 
+            }
+
+            /* 7. High Contrast Borders for Print */
+            .report-table th, .report-table td, .report-header-table td {
+                border: 1px solid #000 !important;
+                color: #000 !important;
+            }
+            
+            .report-image {
+                max-width: 100% !important;
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Screen Styles for Tables */
+        .report-table th, .report-table td, .report-header-table td, .report-header-table { border: 1px solid #e5e7eb; }
+        .report-table th { background-color: #f3f4f6; }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden bg-gray-100">
+
+    <div id="mobile-overlay"></div>
+    
+    <!-- Mobile Toggle -->
+    <button id="toggle-sidebar-btn" class="md:hidden fixed top-4 left-4 z-50 bg-gray-900 text-white p-2 rounded-lg shadow-lg">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    </button>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="bg-[#111827] text-white flex flex-col h-full font-sans shrink-0 z-40 shadow-2xl w-64">
+        <!-- Logo Area -->
+        <div class="h-20 flex items-center px-6 shrink-0">
+            <div class="flex items-center gap-3">
+                <svg width="36" height="36" viewBox="0 0 100 100" fill="none" class="shrink-0 drop-shadow-md">
+                    <path d="M50 10 L85 30 L85 70 L50 90 L50 10 Z" fill="#C62828"/>
+                    <path d="M50 10 L15 30 L15 70 L50 90 L50 10 Z" fill="#4B5563"/>
+                    <path d="M50 10 L85 30 L50 50 L15 30 L50 10 Z" fill="#EF5350"/>
+                </svg>
+                <div class="logo-text flex flex-col">
+                    <span class="font-bold text-lg tracking-tight text-white leading-tight">iPETRO</span>
+                    <span class="text-[10px] font-bold text-red-500 tracking-widest uppercase">RBIMS Core</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nav Links -->
+        <div class="flex-1 overflow-y-auto py-6 custom-scrollbar">
+            <nav class="flex flex-col gap-1">
+                <div class="sidebar-section-title px-6 mb-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Workspace</div>
+                
+                <a href="test.html" class="sidebar-link group" data-page="test">
+                    <svg class="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span class="sidebar-text font-medium text-sm ml-3">Inspection Log</span>
+                </a>
+                <a href="equipment.html" class="sidebar-link group" data-page="equipment">
+                    <svg class="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    <span class="sidebar-text font-medium text-sm ml-3">Equipment</span>
+                </a>
+                <a href="inspectionplan.html" class="sidebar-link group" data-page="inspectionplan">
+                    <svg class="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    <span class="sidebar-text font-medium text-sm ml-3">Plans</span>
+                </a>
+            </nav>
+        </div>
+
+         <!-- User Profile with Logout Button -->
+        <div class="p-4 bg-[#0B111D] shrink-0">
+            <div class="flex items-center gap-3 p-2 rounded-lg mb-2">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center text-xs font-bold text-white shadow-lg shrink-0 border border-red-400/30">--</div>
+                <div class="user-info-text overflow-hidden">
+                    <div class="text-sm font-medium text-gray-200 truncate">Loading...</div>
+                    <div class="text-[10px] text-emerald-500 flex items-center gap-1.5 font-medium">
+                        <span class="relative flex h-2 w-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        System Online
+                    </div>
+                </div>
+            </div>
+            <button onclick="logout()" class="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+                <span class="sidebar-text">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <!-- Desktop Header -->
+        <header class="h-16 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between px-8 shadow-sm shrink-0 z-30">
+            <div class="flex items-center gap-4">
+                <button id="desktop-toggle-btn" onclick="document.getElementById('toggle-sidebar-btn').click()" class="hidden md:flex text-gray-400 hover:text-gray-700 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                </button>
+                <h1 class="text-lg font-bold text-gray-800 tracking-tight">Inspection Plan History</h1>
+            </div>
+            
+            <div class="flex gap-3 items-center">
+                <div id="system-status" class="hidden md:flex px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 rounded-full border border-green-100 items-center gap-2 shadow-sm">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> 
+                    <span>System Ready</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-auto p-6">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-full">
+                <div class="overflow-auto flex-1">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Insp. ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Equipment</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Inspector</th>
+                                <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-widest">Parts Logged</th>
+                                <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-list" class="bg-white divide-y divide-gray-200">
+                            <tr><td colspan="6" class="px-6 py-12 text-center text-gray-400">Loading history records...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- REPORT MODAL -->
+    <div id="modal" class="modal opacity-0 pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0 bg-gray-900/70 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+        <div class="modal-container bg-white w-full max-w-6xl rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-[95vh]">
+            <!-- Modal Header -->
+            <div id="modal-header" class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 class="text-lg font-bold text-gray-800" id="modal-title">Inspection Plan</h3>
+                <div class="flex gap-3 items-center">
+                    <!-- PPT Button -->
+                    <button id="ppt-button" onclick="triggerPPTExport()" class="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 shadow-md flex items-center gap-2 transition-all cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                        Export PPT
+                    </button>
+
+                    <button id="print-button" onclick="window.print()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-md flex items-center gap-2 transition-all cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        Print Report
+                    </button>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Modal Content (Print Area) -->
+            <div id="modal-print-area" class="p-8 overflow-y-auto bg-white">
+                <div id="modal-content" class="text-sm">Loading details...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // ================================================
+// FIXED AUTH CODE FOR EQUIPMENT.HTML & INSPECTIONPLAN.HTML
+// Copy this to replace the existing initAuth() function
+// ================================================
+
+let currentUser = null;
+
+/**
+ * Initialize authentication check
+ * This checks who is logged in for UI display purposes only
+ * Security is handled server-side
+ */
+async function initAuth() {
+    try {
+        const res = await fetch('/auth/me', {
+            credentials: 'include'  // CRITICAL: Include session cookie
+        });
+        
+        const data = await res.json();
+        
+        if (data.isAuthenticated && data.user) {
+            currentUser = data.user;
+            updateUserUI();
+        } else {
+            console.log('Not authenticated - but server will handle protection');
+            // DO NOT REDIRECT HERE - server already did the protection!
+        }
+    } catch (error) {
+        console.error('Auth check error:', error);
+        // DO NOT REDIRECT HERE EITHER!
+    }
+}
+
+/**
+ * Update UI elements with user information
+ */
+function updateUserUI() {
+    if (!currentUser) return;
+    
+    // Update profile circle with initials
+    const userInitials = document.querySelector('.w-9.h-9.rounded-full');
+    if (userInitials) {
+        userInitials.textContent = currentUser.username.substring(0, 2).toUpperCase();
+    }
+    
+    // Update username display
+    const userNameElement = document.querySelector('.user-info-text .text-sm');
+    if (userNameElement) {
+        userNameElement.textContent = currentUser.username;
+    }
+    
+    // Handle role-based UI visibility
+    if (currentUser.role !== 'admin') {
+        // Hide delete buttons for non-admin users
+        const deleteButtons = document.querySelectorAll('button[onclick*="delete"], .delete-btn');
+        deleteButtons.forEach(btn => {
+            btn.style.display = 'none';
+        });
+    }
+    
+    console.log('User UI updated:', currentUser.username, '(' + currentUser.role + ')');
+}
+
+/**
+ * Logout function
+ */
+async function logout() {
+            if (!confirm('Are you sure you want to logout?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = data.redirect || '/';
+                } else {
+                    alert('Logout failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                alert('An error occurred during logout.');
+            }
+        }
+
+// Initialize on page load
+initAuth();
+
+// ================================================
+// HOW TO USE:
+// 1. Find the existing initAuth() function in your HTML file
+// 2. Replace it with this entire code block
+// 3. Make sure to keep it inside <script> tags
+// 4. Do this for equipment.html, inspectionplan.html, and test.html
+// ================================================
+        // Sidebar Logic
+        (function() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('toggle-sidebar-btn');
+            const mobileOverlay = document.getElementById('mobile-overlay');
+            const currentPage = 'inspectionplan';
+            document.querySelectorAll('.sidebar-link[data-page="inspectionplan"]').forEach(link => link.classList.add('active'));
+            function toggleSidebar() {
+                if (window.innerWidth <= 768) { sidebar.classList.toggle('mobile-open'); mobileOverlay.classList.toggle('active'); } 
+                else { sidebar.classList.toggle('collapsed'); document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed')); }
+            }
+            toggleBtn.addEventListener('click', toggleSidebar);
+            mobileOverlay.addEventListener('click', toggleSidebar);
+            if (window.innerWidth > 768 && localStorage.getItem('sidebarCollapsed') === 'true') { sidebar.classList.add('collapsed'); document.body.classList.add('sidebar-collapsed'); }
+        })();
+
+        // --- APP LOGIC ---
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('modal-content');
+        let currentReportData = null; 
+        
+        async function loadHistory() {
+            try {
+                const res = await fetch('http://localhost:3000/api/inspection-history');
+                const result = await res.json();
+                const tbody = document.getElementById('history-list');
+                if(result.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No inspection records found.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = result.data.map(insp => `
+                    <tr class="hover:bg-gray-50 transition-colors group">
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">#${insp.inspection_id}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">${new Date(insp.inspected_at).toLocaleString()}</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">
+                            <div class="font-bold text-gray-900">${insp.equipment_no}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">${insp.equipment_desc}</div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600 flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600">UA</div>
+                            ${insp.inspected_by}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500 text-center">
+                            <span class="bg-blue-50 text-blue-600 py-1 px-3 rounded-full text-xs font-bold border border-blue-100">${insp.part_count}</span>
+                        </td>
+                        <td class="px-6 py-4 text-right text-sm font-medium">
+                            <button onclick="generatePlan(${insp.inspection_id})" class="text-green-600 hover:text-green-800 font-semibold bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-md transition-all">
+                                Generate Plan
+                            </button>
+                        </td>
+                    </tr>`).join('');
+            } catch (err) { console.error(err); tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-red-500">Error loading history.</td></tr>'; }
+        }
+
+        async function generatePlan(inspectionId) {
+            modalTitle.innerText = `Inspection Plan for #${inspectionId}`;
+            modalContent.innerHTML = '<div class="flex flex-col items-center justify-center py-12"><div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div><p class="text-gray-500">Generating Report...</p></div>';
+            openModal();
+            try {
+                const res = await fetch(`http://localhost:3000/api/inspection-plan/${inspectionId}`);
+                const result = await res.json();
+                if (result.success) {
+                    currentReportData = result.data;
+                    modalContent.innerHTML = createReportHTML(result.data);
+                }
+                else modalContent.innerHTML = '<p class="text-red-500 text-center py-10">Could not load report data.</p>';
+            } catch(e) { modalContent.innerHTML = '<p class="text-red-500 text-center py-10">Error: ' + e.message + '</p>'; }
+        }
+
+        // Wrapper function for PPT button
+        function triggerPPTExport() {
+            if (currentReportData) {
+                exportToPPT(currentReportData);
+            } else {
+                alert("Please generate a plan first.");
+            }
+        }
+
+        function createReportHTML(data) {
+            const insp = data.inspection;
+            const parts = data.parts;
+            const methods = data.methods || [];
+            const riskColors = { 'LOW': 'bg-green-200', 'MEDIUM': 'bg-yellow-200', 'HIGH': 'bg-red-200' };
+
+            let header = `
+                <div class="mb-8 border-b-2 border-gray-800 pb-4">
+                    <h1 class="text-3xl font-bold text-center mb-6 text-gray-900 tracking-tight">INSPECTION PLAN (ON-STREAM)</h1>
+                    <table class="w-full border-collapse report-header-table text-sm">
+                        <tr>
+                            <td class="p-2 font-bold bg-gray-100 w-1/6">Description :</td>
+                            <td class="p-2" colspan="3">${insp.equipment_desc || '-'}</td>
+                            <td class="p-2 font-bold bg-gray-100 w-1/6">PLANT UNIT:</td>
+                            <td class="p-2" colspan="2">iPETRO</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-bold bg-gray-100">Tag. No :</td>
+                            <td class="p-2 font-mono font-bold">${insp.equipment_no || '-'}</td>
+                            <td class="p-2 font-bold bg-gray-100 w-1/6">PMT. No :</td>
+                            <td class="p-2">${insp.pmt_no || '-'}</td>
+                            <td class="p-2 font-bold bg-gray-100">Rev</td>
+                            <td class="p-2">00</td>
+                        </tr>
+                    </table>
+                </div>`;
+
+            let partsTable = `
+                <div class="mb-6">
+                    <h3 class="text-sm font-bold uppercase mb-2 text-gray-500">Component Analysis</h3>
+                    <table class="w-full border-collapse report-table mb-4 text-xs">
+                        <thead class="bg-gray-100 text-black font-bold">
+                            <tr>
+                                <th class="p-2" rowspan="2">FLUID</th>
+                                <th class="p-2" rowspan="2">COMPONENT</th>
+                                <th class="p-2" rowspan="2">DESIGN CODE</th>
+                                <th class="p-2" colspan="3">MATERIAL</th>
+                                <th class="p-2" rowspan="2">INSULATED</th>
+                                <th class="p-2" colspan="2">OP. PARAMETER</th>
+                                <th class="p-2" rowspan="2">RISK RATING</th>
+                                <th class="p-2" rowspan="2">CORROSION GROUP</th>
+                            </tr>
+                            <tr>
+                                <th class="p-1">TYPE</th><th class="p-1">SPEC</th><th class="p-1">GR</th>
+                                <th class="p-1">T (°C)</th><th class="p-1">P (Mpa)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${parts.map(p => `
+                                <tr>
+                                    <td class="p-2 text-center">${p.fluid || '-'}</td>
+                                    <td class="p-2 font-bold">${p.part_name || '-'}</td>
+                                    <td class="p-2 text-center">${p.design_code || insp.design_code || '-'}</td>
+                                    <td class="p-2 text-center">${p.type || '-'}</td>
+                                    <td class="p-2 text-center">${p.spec || '-'}</td>
+                                    <td class="p-2 text-center">${p.grade || '-'}</td>
+                                    <td class="p-2 text-center">${p.insulation ? (p.insulation.toLowerCase().startsWith('y') ? 'YES' : 'NO') : 'NO'}</td>
+                                    <td class="p-2 text-right font-mono">${p.operating_temp || p.design_temp || '-'}</td>
+                                    <td class="p-2 text-right font-mono">${p.operating_pressure || p.design_pressure || '-'}</td>
+                                    <td class="p-2 text-center font-bold border border-black ${riskColors[p.current_risk_rating] || ''}">${p.current_risk_rating || '-'}</td>
+                                    <td class="p-2 text-center" style="white-space: pre-wrap;">${p.corrosion_group || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+            
+            let methodsTable = `
+                <div class="w-1/2 pr-4">
+                    <h3 class="text-sm font-bold uppercase mb-2 text-gray-500">Inspection Strategy</h3>
+                    <table class="w-full border-collapse report-table text-xs">
+                        <thead class="bg-gray-100 text-black font-bold">
+                            <tr>
+                                <th class="p-2 text-left">INSPECTION METHOD</th>
+                                <th class="p-2">COVERAGE</th>
+                                <th class="p-2 text-left">DAMAGE MECHANISM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${methods.map(m => `
+                                <tr>
+                                    <td class="p-2 font-bold">${m.method_name || '-'}</td>
+                                    <td class="p-2 text-center">${m.coverage || '-'}</td>
+                                    <td class="p-2">${m.damage_mechanism || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+
+            let imageSection = `
+                <div class="w-1/2 pl-4 flex flex-col items-center justify-center border-l border-gray-200">
+                    <h3 class="text-sm font-bold uppercase mb-2 text-gray-500 w-full text-left">Equipment Diagram</h3>
+                    <div class="border border-gray-300 p-2 bg-white shadow-sm w-full flex justify-center">
+                        <img src="${insp.image_url || 'https://placehold.co/600x400/f3f4f6/9ca3af?text=No+Diagram+Available'}" alt="Equipment Diagram" class="report-image object-contain" style="max-height: 300px; max-width: 100%;">
+                    </div>
+                </div>
+            `;
+
+            return `${header}${partsTable}<div class="flex mt-8">${methodsTable}${imageSection}</div>`;
+        }
+
+        // --- POWERPOINT GENERATION LOGIC (A4 SIZED) ---
+        async function exportToPPT(data) {
+            try {
+                // 1. Library Check
+                if (typeof PptxGenJS === 'undefined') {
+                    throw new Error("PowerPoint library not loaded. Please check internet connection.");
+                }
+
+                let pres = new PptxGenJS();
+                
+                // 2. Define A4 Layout Explicitly (Width: 8.27", Height: 11.69")
+                pres.defineLayout({ name:'A4', width:8.27, height:11.69 });
+                pres.layout = 'A4';
+                
+                let slide = pres.addSlide();
+                let insp = data.inspection;
+                
+                // 3. Title
+                slide.addText("INSPECTION PLAN (ON-STREAM)", { 
+                    x: 0.5, y: 0.3, w: 7.27, fontSize: 24, bold: true, align: 'center' 
+                });
+                
+                // 4. Header Table
+                let headerRows = [
+                    [
+                        { text: "Description :", options: { bold:true, fill:'F3F4F6' } },
+                        { text: insp.equipment_desc || '-', options: { colspan:3 } },
+                        { text: "PLANT UNIT:", options: { bold:true, fill:'F3F4F6' } },
+                        { text: "iPETRO", options: { colspan:2 } }
+                    ],
+                    [
+                        { text: "Tag. No :", options: { bold:true, fill:'F3F4F6' } },
+                        { text: insp.equipment_no || '-' },
+                        { text: "PMT. No :", options: { bold:true, fill:'F3F4F6' } },
+                        { text: insp.pmt_no || '-' },
+                        { text: "Rev :", options: { bold:true, fill:'F3F4F6' } },
+                        { text: "00" }
+                    ]
+                ];
+                slide.addTable(headerRows, { x: 0.5, y: 0.8, w: 7.27, fontSize: 10, border: { pt: 1, color: '999999' } });
+
+                // 5. Parts Table (Dynamic)
+                let partHeaders = [
+                    [
+                        { text: "FLUID", options:{rowspan:2, fill:'E5E7EB', bold:true} },
+                        { text: "COMPONENT", options:{rowspan:2, fill:'E5E7EB', bold:true} },
+                        { text: "DESIGN CODE", options:{rowspan:2, fill:'E5E7EB', bold:true} },
+                        { text: "MATERIAL", options:{colspan:3, fill:'E5E7EB', bold:true, align:'center'} },
+                        { text: "INSULATED", options:{rowspan:2, fill:'E5E7EB', bold:true} },
+                        { text: "OP. PARAMETER", options:{colspan:2, fill:'E5E7EB', bold:true, align:'center'} },
+                        { text: "RISK", options:{rowspan:2, fill:'E5E7EB', bold:true} },
+                        { text: "CORROSION GROUP", options:{rowspan:2, fill:'E5E7EB', bold:true} }
+                    ],
+                    [
+                        { text: "TYPE", options:{fill:'E5E7EB', bold:true} },
+                        { text: "SPEC", options:{fill:'E5E7EB', bold:true} },
+                        { text: "GR", options:{fill:'E5E7EB', bold:true} },
+                        { text: "T(C)", options:{fill:'E5E7EB', bold:true} },
+                        { text: "P(MPa)", options:{fill:'E5E7EB', bold:true} }
+                    ]
+                ];
+
+                let partRows = (data.parts || []).map(p => [
+                    p.fluid || '-',
+                    p.part_name || '-',
+                    p.design_code || insp.design_code || '-',
+                    p.type || '-',
+                    p.spec || '-',
+                    p.grade || '-',
+                    p.insulation ? (p.insulation.toLowerCase().startsWith('y') ? 'Y' : 'N') : 'N',
+                    p.operating_temp || '-',
+                    p.operating_pressure || '-',
+                    { text: p.current_risk_rating || '-', options: { fill: p.current_risk_rating === 'HIGH' ? 'FECACA' : (p.current_risk_rating === 'MEDIUM' ? 'FEF08A' : 'BBF7D0') } },
+                    p.corrosion_group || '-'
+                ]);
+
+                let partsTableY = 1.8;
+                slide.addTable([...partHeaders, ...partRows], { 
+                    x: 0.5, y: partsTableY, w: 7.27, fontSize: 8, border: { pt: 1, color: 'CCCCCC' } 
+                });
+
+                // 6. Dynamic Positioning for next section
+                // Header (2 rows) + Data Rows. Approx 0.35 inches per row.
+                let tableHeight = (partRows.length + 2) * 0.35;
+                let nextSectionY = partsTableY + tableHeight + 0.5; 
+
+                // 7. Methods Table
+                let methodHeaders = [['INSPECTION METHOD', 'COVERAGE', 'DAMAGE MECHANISM']];
+                let methodRows = (data.methods || []).map(m => [m.method_name, m.coverage, m.damage_mechanism]);
+                
+                slide.addText("INSPECTION STRATEGY", { x: 0.5, y: nextSectionY, w: 3.5, fontSize: 12, bold: true, color: '666666' });
+                slide.addTable([...methodHeaders, ...methodRows], { 
+                    x: 0.5, y: nextSectionY + 0.3, w: 3.5, fontSize: 8, 
+                    border: { pt: 1, color: 'CCCCCC' },
+                    fill: { color: 'FFFFFF' },
+                    headerStyles: { fill: 'E5E7EB', bold: true } 
+                });
+
+                // 8. Equipment Image
+                if (insp.image_url) {
+                     slide.addText("EQUIPMENT DIAGRAM", { x: 4.2, y: nextSectionY, w: 3.5, fontSize: 12, bold: true, color: '666666' });
+                     let imgPath = insp.image_url.startsWith('http') || insp.image_url.startsWith('/') 
+                        ? (insp.image_url.startsWith('/') ? window.location.origin + insp.image_url : insp.image_url)
+                        : null;
+                     
+                     if(imgPath) {
+                        slide.addImage({ path: imgPath, x: 4.2, y: nextSectionY + 0.3, w: 3.5, h: 2.5 });
+                     }
+                }
+
+                await pres.writeFile({ fileName: `Inspection_Plan_${insp.equipment_no}.pptx` });
+
+            } catch (error) {
+                console.error("PPT Export Error:", error);
+                alert("Failed to export PPT: " + error.message);
+            }
+        }
+
+        function openModal() { 
+            modal.classList.remove('opacity-0', 'pointer-events-none'); 
+            document.body.classList.add('modal-active');
+            setTimeout(() => modal.classList.add('modal-active'), 10);
+        }
+        
+        function closeModal() { 
+            modal.classList.remove('modal-active');
+            setTimeout(() => {
+                modal.classList.add('opacity-0', 'pointer-events-none'); 
+                document.body.classList.remove('modal-active'); 
+            }, 200);
+        }
+        
+        loadHistory();
+    </script>
+</body>
+</html>

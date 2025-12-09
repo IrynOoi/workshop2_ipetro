@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPETRO - Inspection Pipeline</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #1F2937; }
+        
+        /* --- Modern Scrollbar --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+
+        /* --- Table Styling Overrides --- */
+        .parts-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 11px; background: white; }
+        
+        .parts-table th { 
+            background: #F9FAFB; 
+            color: #4B5563; 
+            font-weight: 600; 
+            padding: 10px 8px; 
+            text-align: center; 
+            vertical-align: middle;
+            border-bottom: 1px solid #E5E7EB;
+            border-right: 1px solid #F3F4F6;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        /* Handle second row of sticky headers */
+        .parts-table thead tr:nth-child(2) th { top: 37px; } 
+
+        .parts-table td { 
+            border-bottom: 1px solid #F3F4F6; 
+            padding: 0; 
+            text-align: center; 
+            vertical-align: middle;
+            transition: background 0.15s;
+        }
+
+        .parts-table tr:hover td { background-color: #F9FAFB; }
+
+        /* Input Styling within Table */
+        .parts-table input { 
+            width: 100%; 
+            border: 1px solid transparent; 
+            text-align: center; 
+            background: transparent; 
+            padding: 8px 4px; 
+            font-family: 'Inter', sans-serif;
+            color: #374151;
+            transition: all 0.2s;
+        }
+        
+        .parts-table input:focus { 
+            outline: none; 
+            background: white; 
+            border-color: #C62828; 
+            box-shadow: 0 0 0 2px rgba(198, 40, 40, 0.1);
+            z-index: 5;
+            position: relative;
+        }
+
+        .ai-filled input { color: #0369A1; font-weight: 600; background-color: #F0F9FF; }
+        .user-edited input { color: #15803D; background-color: #F0FDF4; }
+        .part-name-cell { 
+            background-color: #fff !important; 
+            color: #111827; 
+            font-weight: 600; 
+            border-right: 1px solid #E5E7EB !important;
+            padding: 0 12px !important;
+        }
+
+        /* --- Sidebar & Layout --- */
+        :root { --ipetro-red: #C62828; }
+        
+        #sidebar { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-link { 
+            display: flex; align-items: center; padding: 10px 16px; 
+            color: #9CA3AF; text-decoration: none; border-radius: 8px;
+            margin: 4px 12px; transition: all 0.2s ease; 
+        }
+        .sidebar-link:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
+        .sidebar-link.active { 
+            background-color: var(--ipetro-red); 
+            color: #fff; 
+            box-shadow: 0 4px 12px rgba(198, 40, 40, 0.3);
+        }
+        
+        #sidebar.collapsed { width: 80px; }
+        #sidebar.collapsed .sidebar-text, #sidebar.collapsed .sidebar-section-title, #sidebar.collapsed .user-info-text, #sidebar.collapsed .logo-text { display: none; }
+        #sidebar.collapsed .sidebar-link { justify-content: center; padding: 12px 0; margin: 4px 8px; }
+        
+        @media (max-width: 768px) {
+            #sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 50; transform: translateX(-100%); width: 260px; }
+            #sidebar.mobile-open { transform: translateX(0); }
+            #mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 40; }
+            #mobile-overlay.active { display: block; }
+        }
+
+        /* --- Custom Components --- */
+        .glass-panel { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.5); }
+        
+        #pdf-canvas { 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); 
+            border-radius: 4px;
+        }
+
+        /* --- Loading Animation --- */
+        .loader-ring {
+            display: inline-block; width: 24px; height: 24px;
+        }
+        .loader-ring:after {
+            content: " "; display: block; width: 20px; height: 20px; margin: 2px; border-radius: 50%;
+            border: 2px solid #C62828; border-color: #C62828 transparent #C62828 transparent;
+            animation: lds-dual-ring 1.2s linear infinite;
+        }
+        @keyframes lds-dual-ring { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+    <script src="/private/sidebar.js"></script>
+</head>
+<body class="h-screen flex overflow-hidden bg-gray-100">
+
+    <div id="mobile-overlay"></div>
+    
+    <!-- Mobile Toggle -->
+    <button id="toggle-sidebar-btn" class="md:hidden fixed top-4 left-4 z-50 bg-gray-900 text-white p-2 rounded-lg shadow-lg">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    </button>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="bg-[#111827] text-white flex flex-col h-full font-sans shrink-0 z-40 shadow-2xl w-64">
+        <!-- Logo Area -->
+        <div class="h-20 flex items-center px-6 shrink-0">
+            <div class="flex items-center gap-3">
+                <svg width="36" height="36" viewBox="0 0 100 100" fill="none" class="shrink-0 drop-shadow-md">
+                    <path d="M50 10 L85 30 L85 70 L50 90 L50 10 Z" fill="#C62828"/>
+                    <path d="M50 10 L15 30 L15 70 L50 90 L50 10 Z" fill="#4B5563"/>
+                    <path d="M50 10 L85 30 L50 50 L15 30 L50 10 Z" fill="#EF5350"/>
+                </svg>
+                <div class="logo-text flex flex-col">
+                    <span class="font-bold text-lg tracking-tight text-white leading-tight">iPETRO</span>
+                    <span class="text-[10px] font-bold text-red-500 tracking-widest uppercase">RBIMS Core</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nav Links -->
+        <div class="flex-1 overflow-y-auto py-6 custom-scrollbar">
+            <nav class="flex flex-col gap-1">
+                <div class="sidebar-section-title px-6 mb-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Workspace</div>
+                
+                <a href="test.html" class="sidebar-link group" data-page="test">
+                    <svg class="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span class="sidebar-text font-medium text-sm ml-3">Inspection Log</span>
+                </a>
+                <a href="equipment.html" class="sidebar-link group" data-page="equipment">
+                    <svg class="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    <span class="sidebar-text font-medium text-sm ml-3">Equipment</span>
+                </a>
+                <a href="inspectionplan.html" class="sidebar-link group" data-page="inspectionplan">
+                    <svg class="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    <span class="sidebar-text font-medium text-sm ml-3">Plans</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- User Profile with Logout Button -->
+        <div class="p-4 bg-[#0B111D] shrink-0">
+            <div class="flex items-center gap-3 p-2 rounded-lg mb-2">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center text-xs font-bold text-white shadow-lg shrink-0 border border-red-400/30">--</div>
+                <div class="user-info-text overflow-hidden">
+                    <div class="text-sm font-medium text-gray-200 truncate">Loading...</div>
+                    <div class="text-[10px] text-emerald-500 flex items-center gap-1.5 font-medium">
+                        <span class="relative flex h-2 w-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        System Online
+                    </div>
+                </div>
+            </div>
+            <button onclick="logout()" class="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+                <span class="sidebar-text">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <!-- Desktop Header -->
+        <header class="h-16 bg-white/80 backdrop-blur-md border-b border-gray-200/80 flex items-center justify-between px-8 shadow-sm shrink-0 z-30">
+            <div class="flex items-center gap-4">
+                <!-- Desktop Sidebar Toggle -->
+                <button id="desktop-toggle-btn" onclick="document.getElementById('toggle-sidebar-btn').click()" class="hidden md:flex text-gray-400 hover:text-gray-700 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                </button>
+                <h1 class="text-lg font-bold text-gray-800 tracking-tight">Inspection Pipeline</h1>
+            </div>
+            
+            <div class="flex gap-3 items-center">
+                <div id="system-status" class="hidden md:flex px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 rounded-full border border-green-100 items-center gap-2 shadow-sm">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> 
+                    <span>System Ready</span>
+                </div>
+                <div class="h-6 w-px bg-gray-200 mx-1"></div>
+                <button id="export-excel" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-sm" disabled>
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Export Report
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-hidden flex p-4 gap-4">
+            
+            <!-- Left Column: Interactions -->
+            <div class="flex-grow flex flex-col gap-4 min-w-0 w-2/3">
+                
+                <!-- Top Card: Controls -->
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex flex-col md:flex-row justify-between items-end md:items-center gap-4 shrink-0">
+                    <div class="w-full md:w-auto">
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Select Asset Equipment</label>
+                        <div class="relative">
+                            <select id="equipment-select" class="block w-full md:w-72 pl-3 pr-10 py-2.5 text-sm border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-lg bg-gray-50 border hover:bg-gray-100 transition-colors appearance-none cursor-pointer font-medium text-gray-700">
+                                <option value="">Loading Database...</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Area -->
+                    <div class="flex items-center gap-3">
+                        <label id="file-upload-label" class="hidden cursor-pointer group relative inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600 shadow-md hover:shadow-lg">
+                            <svg class="w-4 h-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            Upload PDF
+                            <input id="file-upload" type="file" accept=".pdf" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Split View Container -->
+                <div class="flex-1 flex flex-col gap-4 min-h-0">
+                    <!-- PDF Viewer Section -->
+                    <div id="preview-area" class="relative h-1/2 bg-gray-100/50 rounded-xl border border-gray-200 overflow-hidden flex items-center justify-center group">
+                        <!-- Empty State -->
+                        <div id="upload-placeholder" class="text-center text-gray-400">
+                            <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+                                <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            </div>
+                            <p class="font-medium text-gray-500">No PDF Selected</p>
+                            <p class="text-xs text-gray-400 mt-1">Select equipment to unlock upload</p>
+                        </div>
+
+                        <!-- Canvas -->
+                        <canvas id="pdf-canvas" class="hidden bg-white transition-transform duration-300"></canvas>
+
+                        <!-- Floating Controls (Only visible when PDF loaded) -->
+                        <div id="page-nav" class="hidden absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-900/90 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-2xl flex items-center gap-4 z-20 border border-white/10">
+                            <button id="prev-page" class="hover:text-red-400 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                            <span class="text-sm font-mono font-medium border-l border-r border-gray-700 px-3 min-w-[60px] text-center"><span id="page_num">1</span> / <span id="page_count">--</span></span>
+                            <button id="next-page" class="hover:text-red-400 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+                            <div class="w-px h-4 bg-gray-700 mx-1"></div>
+                            <button id="process-all-btn" class="text-xs font-bold text-blue-400 hover:text-blue-300 uppercase tracking-wider">Scan All</button>
+                        </div>
+
+                        <!-- Modern Loader -->
+                        <div id="loading-indicator" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+                            <div class="loader-ring mb-3"></div>
+                            <span id="loading-text" class="text-sm font-semibold text-gray-700 animate-pulse">Analyzing Document...</span>
+                        </div>
+                    </div>
+
+                    <!-- Data Table Section -->
+                    <div class="h-1/2 bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
+                        <div class="px-5 py-3 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center shrink-0">
+                            <h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                <span class="w-2 h-2 bg-red-500 rounded-full"></span> Extracted Data
+                            </h2>
+                            <span class="text-[10px] text-gray-400 bg-gray-100 px-2 py-1 rounded">Editable Grid</span>
+                        </div>
+                        <div id="parts-table-container" class="flex-1 overflow-auto relative">
+                            <!-- Table injected here by JS -->
+                            <div class="flex items-center justify-center h-full text-gray-400 text-sm">
+                                Waiting for input...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: JSON/Technical -->
+            <div class="w-1/3 min-w-[300px] flex flex-col bg-[#1E1E1E] rounded-xl shadow-lg border border-gray-700 overflow-hidden">
+                <div class="p-4 border-b border-gray-700 bg-[#252526] flex justify-between items-center shrink-0">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        <h2 class="text-xs font-bold text-gray-300 uppercase tracking-wide font-mono">System Output</h2>
+                    </div>
+                    <button id="save-db" class="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-green-900/20 flex items-center gap-2" disabled>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                        Push to DB
+                    </button>
+                </div>
+                <div class="relative flex-1">
+                    <textarea id="output-text" class="absolute inset-0 w-full h-full p-4 font-mono text-xs bg-[#1E1E1E] text-blue-300 resize-none focus:outline-none leading-relaxed" readonly spellcheck="false" placeholder="// JSON response will appear here..."></textarea>
+                </div>
+                <div class="h-6 bg-[#007ACC] text-white text-[10px] flex items-center px-3 justify-between shrink-0">
+                    <span>JSON</span>
+                    <span>UTF-8</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ================================================
+        // AUTHENTICATION LOGIC
+        // ================================================
+        let currentUser = null;
+
+        async function initAuth() {
+            try {
+                const res = await fetch('/auth/me', {
+                    credentials: 'include'
+                });
+                
+                const data = await res.json();
+                
+                if (data.isAuthenticated && data.user) {
+                    currentUser = data.user;
+                    updateUserUI();
+                } else {
+                    console.log('Not authenticated - viewing as guest');
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+            }
+        }
+
+        function updateUserUI() {
+            if (!currentUser) return;
+            
+            // Update profile circle with initials
+            const userInitials = document.querySelector('.w-9.h-9.rounded-full');
+            if (userInitials) {
+                userInitials.textContent = currentUser.username.substring(0, 2).toUpperCase();
+            }
+            
+            // Update username display
+            const userNameElement = document.querySelector('.user-info-text .text-sm');
+            if (userNameElement) {
+                userNameElement.textContent = currentUser.username;
+            }
+            
+            // Handle role-based UI visibility
+            if (currentUser.role !== 'admin') {
+                // Hide delete buttons for non-admin users
+                const deleteButtons = document.querySelectorAll('button[onclick*="delete"], .delete-btn');
+                deleteButtons.forEach(btn => {
+                    btn.style.display = 'none';
+                });
+            }
+            
+            console.log('User UI updated:', currentUser.username, '(' + currentUser.role + ')');
+        }
+
+        async function logout() {
+            // Replaced generic confirm with SweetAlert2
+            const result = await Swal.fire({
+                title: 'Logout?',
+                text: "Are you sure you want to end your session?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#C62828',
+                cancelButtonColor: '#374151',
+                confirmButtonText: 'Yes, logout',
+                cancelButtonText: 'Cancel'
+            });
+
+            if (!result.isConfirmed) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = data.redirect || '/';
+                } else {
+                    Swal.fire({
+                        title: 'Logout Failed',
+                        text: 'Please try again.',
+                        icon: 'error',
+                        confirmButtonColor: '#C62828'
+                    });
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                Swal.fire({
+                    title: 'System Error',
+                    text: 'An error occurred during logout.',
+                    icon: 'error',
+                    confirmButtonColor: '#1F2937'
+                });
+            }
+        }
+
+        // Initialize Auth
+        initAuth();
+
+
+        // ================================================
+        // SIDEBAR & UI LOGIC
+        // ================================================
+        (function() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('toggle-sidebar-btn');
+            const mobileOverlay = document.getElementById('mobile-overlay');
+            const currentPage = 'test'; // This page is 'test'
+            document.querySelectorAll('.sidebar-link[data-page="test"]').forEach(link => link.classList.add('active'));
+            function toggleSidebar() {
+                if (window.innerWidth <= 768) { sidebar.classList.toggle('mobile-open'); mobileOverlay.classList.toggle('active'); } 
+                else { sidebar.classList.toggle('collapsed'); document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed')); }
+            }
+            toggleBtn.addEventListener('click', toggleSidebar);
+            mobileOverlay.addEventListener('click', toggleSidebar);
+            if (window.innerWidth > 768 && localStorage.getItem('sidebarCollapsed') === 'true') { sidebar.classList.add('collapsed'); document.body.classList.add('sidebar-collapsed'); }
+        })();
+
+        // --- APP LOGIC ---
+        const equipmentSelect = document.getElementById('equipment-select');
+        const partsContainer = document.getElementById('parts-table-container');
+        const exportBtn = document.getElementById('export-excel');
+        const uploadLabel = document.getElementById('file-upload-label');
+        const uploadInput = document.getElementById('file-upload');
+        const pdfCanvas = document.getElementById('pdf-canvas');
+        const ctx = pdfCanvas.getContext('2d');
+        const pageNav = document.getElementById('page-nav');
+        const loadingInd = document.getElementById('loading-indicator');
+        const outputText = document.getElementById('output-text');
+        const saveBtn = document.getElementById('save-db');
+        const previewArea = document.getElementById('preview-area');
+        
+        let pdfDoc = null, pageNum = 1, currentEquipId = null, currentParts = [];
+        let equipmentDataCache = [];
+
+        // 1. Load Equipment
+        async function loadEquipment() {
+            try {
+                const res = await fetch('http://localhost:3000/api/equipment').then(r => r.json());
+                if(res.success) {
+                    equipmentDataCache = res.data;
+                    equipmentSelect.innerHTML = '<option value="">-- Select --</option>' + 
+                        res.data.map(e => `<option value="${e.equipment_id}">${e.equipment_no} - ${e.equipment_desc}</option>`).join('');
+                }
+            } catch(e) { console.error("Failed to load equipment", e); }
+        }
+        loadEquipment();
+
+        // 2. Select Equipment
+        equipmentSelect.addEventListener('change', async (e) => {
+            currentEquipId = e.target.value;
+            if(!currentEquipId) return;
+            
+            exportBtn.disabled = true;
+            uploadLabel.classList.add('hidden');
+            partsContainer.innerHTML = '<p class="p-4 text-gray-500">Loading...</p>';
+            
+            try {
+                const equipData = equipmentDataCache.find(e => e.equipment_id == currentEquipId);
+                const designCode = equipData ? equipData.design_code : '';
+                
+                const res = await fetch(`http://localhost:3000/api/equipment-parts/${currentEquipId}`).then(r => r.json());
+                if(res.success) {
+                    currentParts = res.data;
+                    renderTable(currentParts, designCode);
+                    uploadLabel.classList.remove('hidden');
+                    exportBtn.disabled = false;
+                    document.getElementById('upload-placeholder').innerHTML = '<p>Ready to Upload</p>';
+                }
+            } catch(err) { console.error(err); }
+        });
+
+        // 3. Render Table
+        function renderTable(parts, designCode) {
+            let html = `<table class="parts-table"><thead>
+                <tr><th rowspan="2">PART</th><th rowspan="2">PHASE</th><th rowspan="2">FLUID</th><th rowspan="2">DESIGN CODE</th><th colspan="3">MATERIAL</th><th rowspan="2">INSUL</th><th colspan="2">DESIGN</th><th colspan="2">OPERATING</th></tr>
+                <tr><th>TYPE</th><th>SPEC</th><th>GRADE</th><th>TEMP</th><th>PRESS</th><th>TEMP</th><th>PRESS</th></tr>
+                </thead><tbody>`;
+            
+            parts.forEach(p => {
+                html += `<tr data-part="${p.part_name.toLowerCase()}" data-id="${p.part_id}">
+                    <td class="part-name-cell font-bold bg-gray-50 text-left px-2">${p.part_name}</td>
+                    <td><input data-f="phase" placeholder="-"></td>
+                    <td><input data-f="fluid" placeholder="-"></td>
+                    <td><input data-f="design_code" value="${designCode || ''}" placeholder="-" class="${designCode ? 'ai-filled' : ''}"></td>
+                    <td><input data-f="type" placeholder="-"></td>
+                    <td><input data-f="spec" placeholder="-"></td>
+                    <td><input data-f="grade" placeholder="-"></td>
+                    <td><input data-f="insulation" placeholder="-"></td>
+                    <td><input type="number" step="0.01" data-f="design_temp" placeholder="-"></td>
+                    <td><input type="number" step="0.01" data-f="design_pressure" placeholder="-"></td>
+                    <td><input type="number" step="0.01" data-f="operating_temp" placeholder="-"></td>
+                    <td><input type="number" step="0.01" data-f="operating_pressure" placeholder="-"></td>
+                </tr>`;
+            });
+            partsContainer.innerHTML = html + '</tbody></table>';
+            
+            partsContainer.querySelectorAll('input').forEach(i => i.addEventListener('input', () => { 
+                i.parentElement.classList.remove('ai-filled'); 
+                i.parentElement.classList.add('user-edited'); 
+            }));
+        }
+
+        // 4. Upload PDF
+        uploadInput.addEventListener('change', function() {
+            if(this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    loadingInd.classList.remove('hidden');
+                    pdfjsLib.getDocument(new Uint8Array(ev.target.result)).promise.then(pdf => {
+                        pdfDoc = pdf;
+                        document.getElementById('page_count').textContent = pdf.numPages;
+                        pageNav.classList.remove('hidden');
+                        renderPage(1);
+                    });
+                };
+                reader.readAsArrayBuffer(this.files[0]);
+            }
+        });
+
+        // 5. Render Page (Shrink-to-Fit)
+        function renderPage(num, auto = false) {
+            pageNum = num;
+            document.getElementById('page_num').textContent = num;
+            if(!auto) document.getElementById('upload-placeholder').classList.add('hidden');
+            pdfCanvas.classList.remove('hidden');
+            
+            pdfDoc.getPage(num).then(page => {
+                const containerWidth = previewArea.clientWidth - 48; 
+                const containerHeight = previewArea.clientHeight - 48;
+                const unscaledViewport = page.getViewport({ scale: 1 });
+                const scale = Math.min(containerWidth / unscaledViewport.width, containerHeight / unscaledViewport.height);
+                const viewport = page.getViewport({ scale });
+                
+                pdfCanvas.height = viewport.height;
+                pdfCanvas.width = viewport.width;
+                page.render({canvasContext: ctx, viewport}).promise.then(() => { 
+                    if(auto) runOCR(true); 
+                    else loadingInd.classList.add('hidden'); 
+                });
+            });
+        }
+
+        // 6. Run OCR
+        async function runOCR(isBatch) {
+            loadingInd.classList.remove('hidden');
+            const img = pdfCanvas.toDataURL('image/png').split(',')[1];
+            try {
+                const res = await fetch('http://localhost:3000/api/extract-data', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ imageBase64: img, partsList: currentParts.map(p=>p.part_name) }) }).then(r => r.json());
+                if(res.success) {
+                    fillTable(res.data.readings);
+                    outputText.value = (isBatch ? outputText.value + "\n" : "") + JSON.stringify(res.data, null, 2);
+                    saveBtn.disabled = false;
+                }
+            } catch(e) { console.error(e); }
+            if(!isBatch) loadingInd.classList.add('hidden');
+            if(isBatch) document.dispatchEvent(new Event('page-done'));
+        }
+
+        // 7. Fill Table
+        function fillTable(readings) {
+            readings.forEach(r => {
+                const row = document.querySelector(`tr[data-part="${r.part_name.toLowerCase()}"]`);
+                if(row) {
+                    for(const [k, v] of Object.entries(r)) {
+                        const inp = row.querySelector(`input[data-f="${k}"]`);
+                        if(inp && v != null && v !== "" && inp.value === "") { 
+                            inp.value = v; 
+                            inp.parentElement.classList.add('ai-filled'); 
+                        }
+                    }
+                }
+            });
+        }
+
+        // 8. Batch Process
+        document.getElementById('process-all-btn').addEventListener('click', async () => {
+            if(!pdfDoc) return;
+            
+            // Ensure loader is visible
+            loadingInd.classList.remove('hidden');
+            
+            for(let i=1; i<=pdfDoc.numPages; i++) { 
+                renderPage(i, true); 
+                await new Promise(r => document.addEventListener('page-done', r, {once:true})); 
+            }
+            
+            // HIDE THE LOADER HERE after loop finishes
+            loadingInd.classList.add('hidden');
+            
+            // Replaced generic alert with SweetAlert2 Toast
+            Swal.fire({
+                title: 'Scan Complete',
+                text: `Processed ${pdfDoc.numPages} pages successfully.`,
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                background: '#F0FDF4', // Light green matches the "Saved" toast
+                color: '#166534'
+            });
+        });
+
+        // 9. Export Excel
+        exportBtn.addEventListener('click', () => {
+            const wb = XLSX.utils.book_new();
+            const selectedOption = equipmentSelect.options[equipmentSelect.selectedIndex];
+            const data = [
+                ["INSPECTION REPORT"], ["Equipment:", selectedOption.text], ["Date:", new Date().toLocaleString()], [], 
+                ["PART","PHASE","FLUID","DESIGN CODE","TYPE","SPEC","GRADE","INSUL","D.TEMP","D.PRESS","O.TEMP","O.PRESS"]
+            ];
+            document.querySelectorAll('.parts-table tbody tr').forEach(tr => { 
+                const row = [tr.querySelector('.part-name-cell').innerText]; 
+                tr.querySelectorAll('input').forEach(i => row.push(i.value || '-')); 
+                data.push(row); 
+            });
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            ws['!cols'] = [{wch:20},{wch:10},{wch:12},{wch:15},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10}];
+            XLSX.utils.book_append_sheet(wb, ws, "Data");
+            XLSX.writeFile(wb, "Inspection_Report.xlsx");
+        });
+
+        // 10. Save DB (UPDATED TO INCLUDE USER)
+        saveBtn.addEventListener('click', async () => {
+            const readings = [];
+            document.querySelectorAll('.parts-table tbody tr').forEach(tr => {
+                const r = { part_id: tr.dataset.id, part_name: tr.querySelector('.part-name-cell').innerText };
+                let hasData = false;
+                tr.querySelectorAll('input').forEach(i => {
+                    r[i.dataset.f] = i.value;
+                    if(i.value) hasData = true;
+                });
+                if(hasData) readings.push(r);
+            });
+
+            if(readings.length === 0) {
+                return Swal.fire({
+                    title: 'No Data',
+                    text: 'The grid is empty. Please upload a PDF or manually enter data.',
+                    icon: 'warning',
+                    confirmButtonColor: '#C62828'
+                });
+            }
+            
+            saveBtn.textContent = "Saving..."; 
+            saveBtn.disabled = true;
+            
+            // Determine inspector name from auth
+            const inspectorName = currentUser ? currentUser.username : 'Anonymous';
+            
+            try {
+                const res = await fetch('http://localhost:3000/api/save-data', {
+                    method:'POST', 
+                    headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ 
+                        data: { 
+                            equipment_id: currentEquipId, 
+                            readings,
+                            inspector_name: inspectorName // <--- ADDED THIS FIELD
+                        } 
+                    })
+                }).then(r => r.json());
+                
+                if(res.success) {
+                    Swal.fire({
+                        title: 'Saved to Database',
+                        text: 'Inspection records have been successfully logged.',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        position: 'top-end',
+                        toast: true,
+                        background: '#F0FDF4',
+                        color: '#166534'
+                    });
+                } else {
+                    throw new Error(res.error.message);
+                }
+            } catch(e) { 
+                Swal.fire({
+                    title: 'System Error',
+                    text: e.message,
+                    icon: 'error',
+                    confirmButtonColor: '#1F2937'
+                });
+            }
+            
+            saveBtn.textContent = "Push to DB"; 
+            saveBtn.disabled = false;
+        });
+
+        // Nav
+        document.getElementById('prev-page').onclick = () => { if(pageNum>1) renderPage(pageNum-1); };
+        document.getElementById('next-page').onclick = () => { if(pageNum<pdfDoc.numPages) renderPage(pageNum+1); };
+    </script>
+</body>
+</html>
