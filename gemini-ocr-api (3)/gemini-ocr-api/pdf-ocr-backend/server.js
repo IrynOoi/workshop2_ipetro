@@ -45,6 +45,12 @@ const protect = (req, res, next) => {
     }
 };
 
+app.get('/profile.html', protect, (req, res) => {
+    res.sendFile(path.join(__dirname, 'private', 'profile.html'));
+});
+
+
+
 // --- PROTECTED PAGE ROUTES ---
 app.get('/test.html', protect, (req, res) => {
     res.sendFile(path.join(__dirname, 'private', 'test.html'));

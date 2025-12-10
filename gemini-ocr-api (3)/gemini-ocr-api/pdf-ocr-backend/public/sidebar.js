@@ -3,6 +3,9 @@
  * Loads menu.html and manages sidebar interactions
  */
 
+const response = await fetch('/menu.html');
+
+
 (async function() {
     'use strict';
 

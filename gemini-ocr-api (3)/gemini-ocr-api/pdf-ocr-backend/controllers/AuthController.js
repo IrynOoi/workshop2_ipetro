@@ -153,3 +153,86 @@ exports.checkAuth = (req, res) => {
         });
     }
 };
+
+
+// ... existing code ...
+
+/**
+ * Get User Profile
+ * @route GET /auth/profile
+ */
+exports.getProfile = async (req, res) => {
+    // Check if session exists
+    if (!req.session.user) {
+        return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+
+    try {
+        // Fetch fresh user data (excluding password)
+        const result = await db.query(
+            'SELECT user_id, username, role, created_at FROM users WHERE user_id = $1', 
+            [req.session.user.id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        res.json({ 
+            success: true, 
+            user: result.rows[0] 
+        });
+
+    } catch (error) {
+        console.error('Profile Fetch Error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+/**
+ * Update Profile (Change Password)
+ * @route PUT /auth/profile
+ */
+exports.updateProfile = async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ success: false, message: 'Please provide both current and new passwords' });
+    }
+
+    try {
+        // 1. Get current user password details
+        const userResult = await db.query(
+            'SELECT password FROM users WHERE user_id = $1', 
+            [req.session.user.id]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        const user = userResult.rows[0];
+
+        // 2. Verify current password
+        // Note: Using plain text comparison to match your existing login logic
+        if (currentPassword !== user.password) {
+            return res.status(400).json({ success: false, message: 'Incorrect current password' });
+        }
+
+        // 3. Update to new password
+        await db.query(
+            'UPDATE users SET password = $1 WHERE user_id = $2', 
+            [newPassword, req.session.user.id]
+        );
+
+        res.json({ success: true, message: 'Password updated successfully' });
+
+    } catch (error) {
+        console.error('Profile Update Error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};

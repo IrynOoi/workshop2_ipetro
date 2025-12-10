@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - iPETRO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+    <div class="lg:pl-64 flex flex-col min-h-screen transition-all duration-300">
+        
+        <header class="bg-white shadow-sm h-16 flex items-center justify-between px-6 lg:px-10">
+            <h1 class="text-xl font-bold text-gray-800">User Profile</h1>
+        </header>
+
+        <main class="flex-1 p-6 lg:p-10">
+            <div class="max-w-4xl mx-auto space-y-6">
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Account Details</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Username</label>
+                            <div id="display-username" class="text-gray-900 font-medium text-lg">Loading...</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Role</label>
+                            <div id="display-role" class="text-gray-900 font-medium text-lg capitalize">Loading...</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">User ID</label>
+                            <div id="display-id" class="text-gray-900 font-medium">Loading...</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Joined Date</label>
+                            <div id="display-joined" class="text-gray-900 font-medium">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Security</h2>
+                    <form id="password-form" class="space-y-4 max-w-md">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                            <input type="password" id="current-password" required 
+                                class="w-full rounded-lg border-gray-300 border px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                            <input type="password" id="new-password" required 
+                                class="w-full rounded-lg border-gray-300 border px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all">
+                        </div>
+                        
+                        <div id="form-message" class="hidden p-3 rounded-lg text-sm"></div>
+
+                        <button type="submit" 
+                            class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200">
+                            Update Password
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="/sidebar.js"></script>
+
+    <script>
+        // Profile Logic
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadUserProfile();
+
+            document.getElementById('password-form').addEventListener('submit', handlePasswordUpdate);
+        });
+
+        async function loadUserProfile() {
+            try {
+                const res = await fetch('/auth/profile');
+                const data = await res.json();
+
+                if (data.success) {
+                    const user = data.user;
+                    document.getElementById('display-username').textContent = user.username;
+                    document.getElementById('display-role').textContent = user.role;
+                    document.getElementById('display-id').textContent = '#' + user.user_id;
+                    
+                    // Format Date
+                    const date = new Date(user.created_at);
+                    document.getElementById('display-joined').textContent = date.toLocaleDateString('en-US', {
+                        year: 'numeric', month: 'long', day: 'numeric'
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to load profile:', err);
+            }
+        }
+
+        async function handlePasswordUpdate(e) {
+            e.preventDefault();
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const msgDiv = document.getElementById('form-message');
+            const btn = e.target.querySelector('button');
+
+            // Reset UI
+            msgDiv.classList.add('hidden');
+            msgDiv.className = 'hidden p-3 rounded-lg text-sm'; // reset classes
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+
+            try {
+                const res = await fetch('/auth/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+
+                const data = await res.json();
+
+                msgDiv.classList.remove('hidden');
+                
+                if (data.success) {
+                    msgDiv.classList.add('bg-green-50', 'text-green-700', 'border', 'border-green-200');
+                    msgDiv.textContent = 'Success: ' + data.message;
+                    e.target.reset();
+                } else {
+                    msgDiv.classList.add('bg-red-50', 'text-red-700', 'border', 'border-red-200');
+                    msgDiv.textContent = 'Error: ' + (data.message || 'Update failed');
+                }
+            } catch (err) {
+                msgDiv.classList.remove('hidden');
+                msgDiv.classList.add('bg-red-50', 'text-red-700');
+                msgDiv.textContent = 'Server connection error';
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+            }
+        }
+    </script>
+</body>
+</html>
