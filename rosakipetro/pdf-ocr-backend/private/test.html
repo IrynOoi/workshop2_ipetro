@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.min.js"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
@@ -1603,36 +1603,196 @@ function refreshTableWithAuthStatus() {
     });
 }
 
-            /**
-             * Export data to Excel
-             */
-            function exportToExcel() {
-                const wb = XLSX.utils.book_new();
-                const selectedOption = equipmentSelect.options[equipmentSelect.selectedIndex];
+ /**
+ * PRO-TIER EXCEL EXPORT (HIGH CONTRAST BORDERS)
+ * Features: Dark borders applied to BOTH tables for maximum visibility.
+ */
+/**
+ * PRO-TIER EXCEL EXPORT (FIXED BLACK BORDERS)
+ * Features: Pure Black (000000) grid lines applied to ALL tables.
+ */
+function exportToExcel() {
+    // 1. GATHER DATA
+    const wb = XLSX.utils.book_new();
+    const selectedOption = equipmentSelect.options[equipmentSelect.selectedIndex];
+    const currentUser = AuthModule.getCurrentUser();
+    const inspectorName = currentUser ? currentUser.username : 'Guest User';
+    const reportDate = new Date();
+    
+    // Parse Equipment Info
+    const equipText = selectedOption.text;
+    const equipNo = equipText.includes(' - ') ? equipText.split(' - ')[0] : equipText;
+    const equipDesc = equipText.includes(' - ') ? equipText.split(' - ')[1] : '';
+    const designCode = document.querySelector('input[data-f="design_code"]')?.value || '-';
 
-                const data = [
-                    ["INSPECTION REPORT"],
-                    ["Equipment:", selectedOption.text],
-                    ["Date:", new Date().toLocaleString()],
-                    [],
-                    ["PART", "PHASE", "FLUID", "DESIGN CODE", "TYPE", "SPEC", "GRADE", "INSUL", "D.TEMP", "D.PRESS", "O.TEMP", "O.PRESS"]
-                ];
+    // 2. DEFINE STYLES
+    // We define a standard BLACK border object to use everywhere
+    const blackBorder = {
+        top: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } }
+    };
 
-                document.querySelectorAll('.parts-table tbody tr').forEach(tr => {
-                    const row = [tr.querySelector('.part-name-cell').innerText];
-                    tr.querySelectorAll('input').forEach(input => row.push(input.value || '-'));
-                    data.push(row);
-                });
+    const styles = {
+        // Main Title
+        mainTitle: {
+            font: { bold: true, color: { rgb: "DC2626" }, sz: 16 },
+            alignment: { horizontal: "left", vertical: "center" }
+        },
+        
+        // --- METADATA SECTION STYLES ---
+        sectionHeader: {
+            font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+            fill: { fgColor: { rgb: "1E293B" } }, // Dark Slate
+            alignment: { horizontal: "center", vertical: "center" },
+            border: blackBorder
+        },
+        metaLabel: {
+            font: { bold: true, color: { rgb: "475569" }, sz: 10 },
+            fill: { fgColor: { rgb: "F1F5F9" } }, // Light Slate
+            alignment: { horizontal: "right", vertical: "center" },
+            border: blackBorder
+        },
+        metaValue: {
+            font: { color: { rgb: "000000" }, sz: 10, bold: true },
+            fill: { fgColor: { rgb: "FFFFFF" } },
+            alignment: { horizontal: "left", vertical: "center", indent: 1 },
+            border: blackBorder
+        },
 
-                const ws = XLSX.utils.aoa_to_sheet(data);
-                ws['!cols'] = [
-                    { wch: 20 }, { wch: 10 }, { wch: 12 }, { wch: 15 }, { wch: 10 }, { wch: 10 },
-                    { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }
-                ];
+        // --- MAIN DATA TABLE STYLES ---
+        // 1. The Red Header Row (PART, PHASE, FLUID...)
+        tableHeader: {
+            font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+            fill: { fgColor: { rgb: "DC2626" } }, // Red Brand Color
+            alignment: { horizontal: "center", vertical: "center" },
+            border: blackBorder // <--- Forces black border around red headers
+        },
+        // 2. The First Column (Part Names)
+        cellPart: {
+            font: { bold: true, color: { rgb: "1E293B" } },
+            fill: { fgColor: { rgb: "F8FAFC" } }, // Very light gray
+            alignment: { horizontal: "left", vertical: "center", indent: 1 },
+            border: blackBorder // <--- Forces black border around part names
+        },
+        // 3. The Data Cells (Temperatures, Pressures, etc)
+        cellData: {
+            font: { color: { rgb: "000000" } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: blackBorder // <--- Forces black border around data
+        }
+    };
 
-                XLSX.utils.book_append_sheet(wb, ws, "Data");
-                XLSX.writeFile(wb, "Inspection_Report.xlsx");
+    // 3. BUILD DATA STRUCTURE
+    let data = [
+        ["iPETRO INSPECTION REPORT"], 
+        [""], 
+        
+        // R2: Section Headers
+        ["EQUIPMENT DETAILS", "", "", "", "", "", "INSPECTION DETAILS", "", "", "", "", ""], 
+        
+        // R3: Data Row 1
+        ["Equipment No", equipNo, "", "", "", "", "Inspector", inspectorName, "", "", "", ""],
+        
+        // R4: Data Row 2
+        ["Description", equipDesc, "", "", "", "", "Date", reportDate.toLocaleDateString(), "", "", "", ""],
+        
+        // R5: Data Row 3
+        ["Design Code", designCode, "", "", "", "", "Time", reportDate.toLocaleTimeString(), "", "", "", ""],
+        
+        [""], // Spacer
+        
+        // R7: Main Table Header
+        ["PART", "PHASE", "FLUID", "DESIGN CODE", "TYPE", "SPEC", "GRADE", "INSUL", "D.TEMP", "D.PRESS", "O.TEMP", "O.PRESS"]
+    ];
+
+    // 4. APPEND TABLE DATA
+    const rows = document.querySelectorAll('.parts-table tbody tr');
+    rows.forEach(tr => {
+        const partName = tr.querySelector('.part-name-cell').innerText;
+        const rowData = [partName];
+
+        tr.querySelectorAll('input').forEach(input => {
+            let val = input.value || '-';
+            const isNumeric = ['design_temp', 'design_pressure', 'operating_temp', 'operating_pressure'].includes(input.dataset.f);
+            if (isNumeric && val !== '-' && val !== '') val = parseFloat(val);
+            rowData.push(val);
+        });
+        data.push(rowData);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+
+    // 5. DEFINE COLUMN WIDTHS
+    ws['!cols'] = [
+        { wch: 25 }, // Col 0: Labels/PartName
+        { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 10 }, { wch: 12 }, // Middle
+        { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 } // End
+    ];
+
+    // 6. DEFINE MERGES
+    ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 11 } }, // Title
+        
+        // Equipment Block (Left)
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } }, // Header
+        { s: { r: 3, c: 1 }, e: { r: 3, c: 5 } }, // Value 1
+        { s: { r: 4, c: 1 }, e: { r: 4, c: 5 } }, // Value 2
+        { s: { r: 5, c: 1 }, e: { r: 5, c: 5 } }, // Value 3
+
+        // Inspection Block (Right)
+        { s: { r: 2, c: 6 }, e: { r: 2, c: 11 } }, // Header
+        { s: { r: 3, c: 7 }, e: { r: 3, c: 11 } }, // Value 1
+        { s: { r: 4, c: 7 }, e: { r: 4, c: 11 } }, // Value 2
+        { s: { r: 5, c: 7 }, e: { r: 5, c: 11 } }, // Value 3
+    ];
+
+    // 7. APPLY STYLES LOOP
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+            
+            // Ensure cell exists even if empty so border applies
+            if (!ws[cellRef]) ws[cellRef] = { v: "", t: "s" }; 
+
+            // -- Title --
+            if (R === 0) ws[cellRef].s = styles.mainTitle;
+
+            // -- Metadata Headers (Row 2) --
+            else if (R === 2) {
+                if ((C >= 0 && C <= 5) || (C >= 6 && C <= 11)) {
+                    ws[cellRef].s = styles.sectionHeader;
+                }
             }
+
+            // -- Metadata Values (Rows 3-5) --
+            else if (R >= 3 && R <= 5) {
+                // Labels
+                if (C === 0 || C === 6) ws[cellRef].s = styles.metaLabel;
+                // Values
+                else if ((C >= 1 && C <= 5) || (C >= 7 && C <= 11)) ws[cellRef].s = styles.metaValue;
+            }
+
+            // -- Main Grid Header (Row 7) --
+            else if (R === 7) {
+                ws[cellRef].s = styles.tableHeader;
+            }
+
+            // -- Data Rows (Row 8+) --
+            else if (R > 7) {
+                if (C === 0) ws[cellRef].s = styles.cellPart;
+                else ws[cellRef].s = styles.cellData;
+            }
+        }
+    }
+
+    // 8. WRITE FILE
+    XLSX.utils.book_append_sheet(wb, ws, "Inspection Data");
+    const filename = `Inspection_${selectedOption.text.replace(/[^a-z0-9]/gi, '_')}_${reportDate.toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(wb, filename);
+}
 
             /**
              * Save data to database

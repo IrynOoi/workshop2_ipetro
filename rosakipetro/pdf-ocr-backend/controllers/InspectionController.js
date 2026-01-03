@@ -420,7 +420,7 @@ exports.extractData = async (req, res) => {
         `;
 
 
-        const apiKey = "AIzaSyB_oMitjRDhBoS_yARcXaujp0OmNT1rGZg";
+        const apiKey = "";
         const MODEL_NAME = "gemini-2.5-flash";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${apiKey}`;
 
