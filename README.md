@@ -2,55 +2,142 @@
 
 https://www.canva.com/design/DAG7vouTmLc/0SN8Joj_Q76Xt2tlYPiWqQ/view?utm_content=DAG7vouTmLc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h7c454fce26
 
-## INTRODUCTION ABOUT THIS SYSTEM (TECHNICAL PART)
+# iPetro / RBIMS  
+**Risk-Based Inspection Management System**
 
-Overview
-This is a web-based application designed to manage industrial inspections, equipment, and user profiles. It appears to be a Risk-Based Inspection (RBI) system that allows users to upload data, manage equipment inventories, and schedule inspections.
+## 1. System Overview
 
-Technical Stack
-Backend Runtime: Node.js
+iPetro (RBIMS) is a **web-based Risk-Based Inspection (RBI) Management System** designed to support industrial inspection workflows.  
+The system enables organizations to manage equipment inventories, inspection plans, inspection results, and user profiles in a centralized platform.
 
-The core logic runs on a Node.js server (entry point appears to be server.js).
+RBIMS also integrates **AI-assisted data extraction** to automate the interpretation of technical drawings, reducing manual data entry and improving inspection efficiency.
 
-Web Framework: Express.js
+---
 
-Used to handle HTTP requests, routing, and serving static files.
+## 2. Technical Architecture
 
-It utilizes middleware like cors (Cross-Origin Resource Sharing), body-parser (for handling JSON/URL-encoded data), and multer (for handling file uploads like profile images).
+The system follows a **monolithic web application architecture**, where the frontend and backend are served from a single Node.js application.
 
-Database: PostgreSQL
+---
 
-The system connects to a relational database.
+## 3. Technology Stack
 
-There is a schema file (rr4.sql) and a migration file (add_user_profile_fields.sql) included, indicating structured data for Users, Equipment, and Inspections.
+### 3.1 Backend
 
-It uses the mysql2 library for database connectivity.
+- **Runtime:** Node.js  
+- **Web Framework:** Express.js  
+- **Entry Point:** `server.js`
 
-Frontend: HTML / CSS / JavaScript
+The backend handles:
+- HTTP request routing
+- Business logic
+- Authentication and authorization
+- Database transactions
+- AI service integration
 
-The frontend is "server-side served" (Monolithic structure).
+**Middleware Used:**
+- `cors` – Enables Cross-Origin Resource Sharing
+- `body-parser` – Parses JSON and URL-encoded request bodies
+- `multer` – Handles file uploads (e.g., profile images, inspection documents)
+- `express-session` – Manages user sessions and authentication state
 
-The user interface consists of static HTML files located in public/ (accessible to all, e.g., Login) and private/ (likely protected behind authentication).
+---
 
-Authentication:
+### 3.2 Database
 
-The system handles user sessions and login functionality (seen in AuthController.js and express-session).
+- **Database Type:** PostgreSQL (Relational Database)
+- **Schema Definition:** `rr4.sql`
+- **Migration Files:** `add_user_profile_fields.sql`
 
-Key Functional Modules
-Based on the controller files, the system is divided into these main logical areas:
+The database stores structured data for:
+- Users and roles
+- Equipment master data
+- Inspection records
+- Inspection parts and methods
 
-Auth Management: Login, logout, and session handling.
+The backend communicates with the database using a connection pool and parameterized queries to ensure data integrity and security.
 
-User Management: Admin capabilities to manage user accounts and profiles.
+---
 
-Equipment Management: CRUD (Create, Read, Update, Delete) operations for industrial equipment.
+### 3.3 Frontend
 
-Inspection Management: Handling inspection plans and potentially storing results.
+- **Technologies:** HTML, CSS, JavaScript
+- **Rendering Model:** Server-side served (monolithic)
 
-File/Image Handling: Uploading and storing profile pictures or inspection evidence (hinted at by the pdf-ocr-backend folder name, suggesting it might process PDF documents or perform Optical Character Recognition).
+**Directory Structure:**
+- `public/` – Publicly accessible pages (e.g., Login)
+- `private/` – Authenticated pages (e.g., dashboard, inspection modules)
+
+The frontend interacts with backend REST APIs for data retrieval and persistence.
+
+---
+
+## 4. Authentication & Authorization
+
+The system implements session-based authentication:
+
+- User login and logout handled via `AuthController.js`
+- Sessions managed using `express-session`
+- Role-based access control (e.g., Admin vs Inspector)
+- Admin users have additional permissions for user and system management
+
+---
+
+## 5. Core Functional Modules
+
+### 5.1 Authentication Management
+- User login and logout
+- Session validation
+- Role-based access checks
+
+### 5.2 User Management
+- Admin-managed user accounts
+- User profile management
+- Role assignment
+
+### 5.3 Equipment Management
+- CRUD operations for industrial equipment
+- Equipment metadata storage (design code, pressure, temperature, etc.)
+
+### 5.4 Inspection Management
+- Inspection planning and execution
+- Inspection history tracking
+- Risk rating calculation based on operating parameters
+- Inspection report generation
+
+### 5.5 File and Image Handling
+- Uploading and storing profile images
+- Uploading technical drawings and inspection evidence
+- Backend support for document/image processing
+
+---
+
+## 6. AI Integration
+
+### 6.1 AI Model Used
+
+- **AI Provider:** Google Generative AI
+- **Model:** `gemini-2.5-flash`
+- **Type:** Multimodal (Text + Image)
+
+### 6.2 AI Capabilities
+
+The AI module is used to:
+- Analyze technical drawings and engineering documents
+- Extract structured design and inspection data from images
+- Infer missing engineering attributes (e.g., phase, material type)
+- Generate structured JSON output for direct database insertion
+
+This significantly improves inspection efficiency by reducing manual data extraction from drawings and datasheets.
+
+---
+
+## 7. Summary
+
+RBIMS (iPetro) combines traditional inspection management workflows with modern web technologies and AI-powered automation.  
+The system is designed to be scalable, secure, and extensible, supporting both operational inspection needs and advanced risk-based analysis.
 
 
-AI Model: gemini-2.5-flash
 
 
 ## OUTPUT :
