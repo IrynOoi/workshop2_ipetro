@@ -14,7 +14,7 @@ Used to handle HTTP requests, routing, and serving static files.
 
 It utilizes middleware like cors (Cross-Origin Resource Sharing), body-parser (for handling JSON/URL-encoded data), and multer (for handling file uploads like profile images).
 
-Database: MySQL
+Database: PostgreSQL
 
 The system connects to a relational database.
 
