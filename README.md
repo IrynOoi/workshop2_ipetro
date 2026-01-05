@@ -48,6 +48,8 @@ Equipment Management: CRUD (Create, Read, Update, Delete) operations for industr
 Inspection Management: Handling inspection plans and potentially storing results.
 
 File/Image Handling: Uploading and storing profile pictures or inspection evidence (hinted at by the pdf-ocr-backend folder name, suggesting it might process PDF documents or perform Optical Character Recognition).
+
+
 AI Model: gemini-2.5-flash
 
 
