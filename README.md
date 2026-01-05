@@ -1,3 +1,51 @@
+## INTRODUCTION
+System Name: iPetro / RBIMS (Risk-Based Inspection Management System)
+Overview
+This is a web-based application designed to manage industrial inspections, equipment, and user profiles. It appears to be a Risk-Based Inspection (RBI) system that allows users to upload data, manage equipment inventories, and schedule inspections.
+
+Technical Stack
+Backend Runtime: Node.js
+
+The core logic runs on a Node.js server (entry point appears to be server.js).
+
+Web Framework: Express.js
+
+Used to handle HTTP requests, routing, and serving static files.
+
+It utilizes middleware like cors (Cross-Origin Resource Sharing), body-parser (for handling JSON/URL-encoded data), and multer (for handling file uploads like profile images).
+
+Database: MySQL
+
+The system connects to a relational database.
+
+There is a schema file (rr4.sql) and a migration file (add_user_profile_fields.sql) included, indicating structured data for Users, Equipment, and Inspections.
+
+It uses the mysql2 library for database connectivity.
+
+Frontend: HTML / CSS / JavaScript
+
+The frontend is "server-side served" (Monolithic structure).
+
+The user interface consists of static HTML files located in public/ (accessible to all, e.g., Login) and private/ (likely protected behind authentication).
+
+Authentication:
+
+The system handles user sessions and login functionality (seen in AuthController.js and express-session).
+
+Key Functional Modules
+Based on the controller files, the system is divided into these main logical areas:
+
+Auth Management: Login, logout, and session handling.
+
+User Management: Admin capabilities to manage user accounts and profiles.
+
+Equipment Management: CRUD (Create, Read, Update, Delete) operations for industrial equipment.
+
+Inspection Management: Handling inspection plans and potentially storing results.
+
+File/Image Handling: Uploading and storing profile pictures or inspection evidence (hinted at by the pdf-ocr-backend folder name, suggesting it might process PDF documents or perform Optical Character Recognition).
+AI Model: gemini-2.5-flash
+
 ## POSTER 
 
 https://www.canva.com/design/DAG7vouTmLc/0SN8Joj_Q76Xt2tlYPiWqQ/view?utm_content=DAG7vouTmLc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h7c454fce26
