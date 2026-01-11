@@ -1,1373 +1,649 @@
-<!-- // inspectionplan.html -->
-
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>iPETRO - Inspection Plan (Editable)</title>
-
     
-
     <!-- External Dependencies -->
-
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
-
+    <!-- ADDED: Excel Export Library -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
     
-
     <style>
-
         /* ================================================
-
            DESIGN SYSTEM - COLOR VARIABLES
-
            ================================================ */
-
         :root {
-
             /* Brand Colors */
-
             --color-primary: #DC2626;
-
             --color-primary-dark: #B91C1C;
-
             --color-primary-light: #FEE2E2;
-
             --color-primary-glow: rgba(5, 2, 2, 0.15);
-
             
-
             /* Neutral Palette */
-
             --color-slate-50: #F8FAFC;
-
             --color-slate-100: #F1F5F9;
-
             --color-slate-200: #E2E8F0;
-
             --color-slate-300: #CBD5E1;
-
             --color-slate-400: #94A3B8;
-
             --color-slate-500: #64748B;
-
             --color-slate-600: #475569;
-
             --color-slate-700: #334155;
-
             --color-slate-800: #1E293B;
-
             --color-slate-900: #0F172A;
-
             
-
             /* Semantic Colors */
-
             --color-success: #10B981;
-
             --color-success-light: #D1FAE5;
-
             --color-warning: #F59E0B;
-
             --color-info: #3B82F6;
-
             --color-info-light: #DBEAFE;
-
             
-
             /* Spacing Scale */
-
             --space-xs: 0.25rem;
-
             --space-sm: 0.5rem;
-
             --space-md: 1rem;
-
             --space-lg: 1.5rem;
-
             --space-xl: 2rem;
-
             --space-2xl: 3rem;
-
             
-
             /* Border Radius */
-
             --radius-sm: 0.375rem;
-
             --radius-md: 0.5rem;
-
             --radius-lg: 0.75rem;
-
             --radius-xl: 1rem;
-
             
-
             /* Shadows */
-
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-
             --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-
             --shadow-glow: 0 0 20px var(--color-primary-glow);
-
             
-
             /* Transitions */
-
             --transition-base: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-
             --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-
         }
 
-
-
         /* ================================================
-
            GLOBAL STYLES & RESET
-
            ================================================ */
-
         * {
-
             margin: 0;
-
             padding: 0;
-
             box-sizing: border-box;
-
         }
-
         
-
         html {
-
             height: 100%;
-
             overflow: hidden;
-
         }
-
         
-
         body {
-
             font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-
             background: linear-gradient(135deg, var(--color-slate-50) 0%, var(--color-slate-100) 100%);
-
             color: var(--color-slate-900);
-
             -webkit-font-smoothing: antialiased;
-
             -moz-osx-font-smoothing: grayscale;
-
             height: 100%;
-
             overflow: hidden;
-
             position: fixed;
-
             width: 100%;
-
         }
 
-
-
         /* ================================================
-
            SWEETALERT FIX - Prevents page shrinking
-
            ================================================ */
-
         body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
-
             overflow: hidden !important;
-
             padding-right: 0 !important;
-
         }
-
         
-
         .swal2-container {
-
             padding-right: 0 !important;
-
         }
-
         
-
         body.swal2-height-auto {
-
             height: 100% !important;
-
         }
 
-
-
         /* ================================================
-
            CUSTOM SCROLLBAR
-
            ================================================ */
-
         ::-webkit-scrollbar {
-
             width: 8px;
-
             height: 8px;
-
         }
-
         
-
         ::-webkit-scrollbar-track {
-
             background: var(--color-slate-100);
-
             border-radius: var(--radius-sm);
-
         }
-
         
-
         ::-webkit-scrollbar-thumb {
-
             background: var(--color-slate-300);
-
             border-radius: var(--radius-sm);
-
             transition: background var(--transition-base);
-
         }
-
         
-
         ::-webkit-scrollbar-thumb:hover {
-
             background: var(--color-slate-400);
-
         }
-
-
 
         /* ================================================
-
            EDITABLE CONTENT STYLES
-
            ================================================ */
-
         [contenteditable="true"] {
-
             outline: none;
-
             transition: all 0.2s;
-
             border-radius: 4px;
-
             padding: 4px 6px;
-
             margin: -4px -6px;
-
         }
-
-
 
         [contenteditable="true"]:hover {
-
             background-color: rgba(59, 130, 246, 0.05);
-
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-
         }
-
-
 
         [contenteditable="true"]:focus {
-
             background-color: rgba(59, 130, 246, 0.1);
-
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-
         }
 
-
-
-     /* Base style for notes (Read-Only View) */
-
+       /* Base style for notes (Read-Only View) */
         .editable-notes {
-
             min-height: 200px;
-
             padding: 16px;
-
             border: 1px solid transparent; /* Invisible border by default */
-
             border-radius: 8px;
-
-            background: transparent;       /* Clear background by default */
-
+            background: transparent;        /* Clear background by default */
             transition: all 0.2s;
-
         }
-
-
 
         /* Style ONLY when Edit Mode is Active */
-
         .editable-notes[contenteditable="true"] {
-
             border: 2px dashed #D1D5DB;
-
             background: #FAFAFA;
-
         }
-
-
 
         .editable-notes[contenteditable="true"]:hover {
-
             border-color: #3B82F6;
-
             background: #F0F9FF;
-
         }
-
-
 
         .editable-notes[contenteditable="true"]:focus {
-
             outline: none;
-
             border-color: #2563EB;
-
             border-style: solid;
-
             background: white;
-
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-
         }
 
-
-
-       /* ✅ CORRECT: Hover effects ONLY appear when editing is enabled */
-
+        /* ✅ CORRECT: Hover effects ONLY appear when editing is enabled */
         .editable-notes[contenteditable="true"]:hover {
-
             border-color: #3B82F6;
-
             background: #F0F9FF;
-
             cursor: text;
-
         }
-
-
 
         .editable-notes[contenteditable="true"]:focus {
-
             outline: none;
-
             border-color: #2563EB;
-
             border-style: solid;
-
             background: white;
-
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-
         }
-
-
 
         /* Ensure read-only view looks flat and non-interactive */
-
         .editable-notes[contenteditable="false"] {
-
             border: 1px solid transparent;
-
             background: transparent;
-
             cursor: default;
-
         }
-
-
 
         .edit-mode-indicator {
-
             position: fixed;
-
             top: 100px;
-
             right: 20px;
-
             background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-
             color: white;
-
             padding: 12px 20px;
-
             border-radius: 12px;
-
             font-weight: 600;
-
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-
             z-index: 1000;
-
             display: none;
-
             align-items: center;
-
             gap: 8px;
-
             animation: slideInRight 0.3s ease-out;
-
         }
 
-
-
 /* ================================================
-
    COMPONENT ANALYSIS TABLE HOVER EFFECTS
-
    ================================================ */
 
-
-
 /* Add smooth transition for table rows */
-
 .report-table tbody tr {
-
     transition: all 0.2s ease-in-out;
-
 }
-
-
 
 /* Original hover effect - light grey background */
-
 .report-table tbody tr:hover {
-
     background-color: #f9fafb !important; /* Light grey */
-
 }
-
-
 
 /* More pronounced hover effect for all cells */
-
 .report-table tbody tr:hover td {
-
     background-color: #f9fafb !important;
-
 }
 
-
-
-/* Special handling for risk rating cells - make them slightly darker on hover */
-
-.report-table tbody tr:hover td.read-only-field.bg-green-200 {
-
-    background-color: #bbf7d0 !important; /* Darker green */
-
+/* Risk Dropdown Styling */
+select.risk-dropdown {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: transparent;
+    border: none;
+    font-weight: bold;
+    text-align: center;
+    text-align-last: center;
+    width: 100%;
+    cursor: default;
 }
 
-
-
-.report-table tbody tr:hover td.read-only-field.bg-yellow-200 {
-
-    background-color: #fef08a !important; /* Darker yellow */
-
+select.risk-dropdown:not([disabled]) {
+    cursor: pointer;
+    border: 1px solid #94a3b8;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.5);
 }
 
-
-
-.report-table tbody tr:hover td.read-only-field.bg-red-200 {
-
-    background-color: #fecaca !important; /* Darker red */
-
-}
-
-
-
-/* Hover effect for MEDIUM HIGH */
-
-.report-table tbody tr:hover td.read-only-field.bg-orange-200 {
-
-    background-color: #fdba74 !important; /* Darker orange on hover */
-
-}
-
-
-
-/* Add a subtle border highlight on hover */
-
-.report-table tbody tr:hover {
-
-    box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.1);
-
-}
-
-
-
-/* For a more modern striped table with hover */
-
-.report-table tbody tr:nth-child(even) {
-
-    background-color: #f8fafc; /* Very light grey for even rows */
-
-}
-
-
-
-.report-table tbody tr:nth-child(odd) {
-
-    background-color: #ffffff; /* White for odd rows */
-
-}
-
-
-
-/* Hover effect overrides the stripe */
-
-.report-table tbody tr:nth-child(even):hover,
-
-.report-table tbody tr:nth-child(odd):hover {
-
-    background-color: #f1f5f9 !important; /* Slightly darker grey on hover */
-
-}
-
-
-
-/* Optional: Add a subtle animation for the hover effect */
-
-.report-table tbody tr {
-
-    position: relative;
-
-}
-
-
-
-.report-table tbody tr::after {
-
-    content: '';
-
-    position: absolute;
-
-    left: 0;
-
-    right: 0;
-
-    bottom: 0;
-
-    height: 1px;
-
-    background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
-
-    transition: opacity 0.2s;
-
-}
-
-
-
-.report-table tbody tr:hover::after {
-
-    opacity: 0;
-
-}
-
-
-
-/* For a cleaner look, remove borders on hover */
-
-.report-table tbody tr:hover td {
-
-    border-color: #e5e7eb !important;
-
-}
-
-      
-
-/* Risk rating cell base styles */
-
-.read-only-field {
-
-    cursor: default !important;
-
-    user-select: text !important;
-
-    transition: background-color 0.2s ease-in-out;
-
-}
-
-
-
-/* Prevent hover effects from interfering with the cell */
-
-.read-only-field:hover {
-
-    box-shadow: none !important;
-
-}
-
-
-
-/* Risk rating cell specific hover effects */
-
-td.read-only-field.bg-green-200:hover {
-
-    background-color: #bbf7d0 !important; /* Darker green on hover */
-
-}
-
-
-
-td.read-only-field.bg-yellow-200:hover {
-
-    background-color: #fef08a !important; /* Darker yellow on hover */
-
-}
-
-
-
-td.read-only-field.bg-red-200:hover {
-
-    background-color: #fecaca !important; /* Darker red on hover */
-
-}
-
-
-
-/* Add this for MEDIUM HIGH (orange) */
-
-td.read-only-field.bg-orange-200:hover {
-
-    background-color: #fdba74 !important; /* Darker orange on hover */
-
-}
-
-
-
-/* Ensure risk rating colors are preserved */
-
-.bg-green-200 {
-
-    background-color: #d1fae5 !important;
-
-}
-
-
-
-.bg-yellow-200 {
-
-    background-color: #fef3c7 !important;
-
-}
-
-
-
-.bg-orange-200 {
-
-    background-color: #fed7aa !important;
-
-}
-
-
-
-.bg-red-200 {
-
-    background-color: #fee2e2 !important;
-
-}
-
-
+/* Background Colors for Risk Levels */
+.bg-green-200 { background-color: #d1fae5 !important; }
+.bg-yellow-200 { background-color: #fef3c7 !important; }
+.bg-orange-200 { background-color: #fed7aa !important; }
+.bg-red-200 { background-color: #fee2e2 !important; }
 
 /* Validation styling */
-
 .editable-invalid {
-
     background-color: #FEF2F2 !important;
-
     border: 2px solid #DC2626 !important;
-
 }
-
-
 
 .editable-valid {
-
     background-color: #F0FDF4 !important;
-
     border: 2px solid #10B981 !important;
-
 }
-
-
-
 
 
         .edit-mode-indicator.active {
-
             display: flex;
-
         }
-
-
 
         @keyframes slideInRight {
-
             from {
-
                 transform: translateX(100%);
-
                 opacity: 0;
-
             }
-
             to {
-
                 transform: translateX(0);
-
                 opacity: 1;
-
             }
-
         }
-
-
 
         .edit-pulse {
-
             width: 8px;
-
             height: 8px;
-
             background: white;
-
             border-radius: 50%;
-
             animation: pulse 2s infinite;
-
         }
-
-
 
         @keyframes pulse {
-
             0%, 100% { opacity: 1; }
-
             50% { opacity: 0.5; }
-
         }
-
-
 
         /* ================================================
-
            SIDEBAR DESIGN
-
            ================================================ */
-
         #sidebar {
-
             background: linear-gradient(180deg, var(--color-slate-900) 0%, var(--color-slate-800) 100%);
-
             transition: all var(--transition-smooth);
-
             box-shadow: var(--shadow-xl);
-
             position: relative;
-
         }
-
-
 
         #sidebar::before {
-
             content: '';
-
             position: absolute;
-
             top: 0;
-
             right: 0;
-
             width: 1px;
-
             height: 100%;
-
             background: linear-gradient(180deg, 
-
                 transparent 0%, 
-
                 rgba(255,255,255,0.1) 20%, 
-
                 rgba(255,255,255,0.1) 80%, 
-
                 transparent 100%);
-
         }
-
         
-
         .sidebar-link {
-
             display: flex;
-
             align-items: center;
-
             padding: 0.75rem 1rem;
-
             color: var(--color-slate-400);
-
             text-decoration: none;
-
             border-radius: var(--radius-md);
-
             margin: 0.25rem 0.75rem;
-
             transition: all var(--transition-base);
-
             position: relative;
-
             overflow: hidden;
-
         }
-
-
 
         .sidebar-link::before {
-
             content: '';
-
             position: absolute;
-
             left: 0;
-
             top: 0;
-
             height: 100%;
-
             width: 3px;
-
             background: var(--color-primary);
-
             transform: scaleY(0);
-
             transition: transform var(--transition-smooth);
-
         }
-
         
-
         .sidebar-link:hover {
-
             background-color: rgba(255, 255, 255, 0.05);
-
             color: var(--color-slate-200);
-
             transform: translateX(4px);
-
         }
-
         
-
         .sidebar-link.active {
-
             background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-
             color: white;
-
             box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4), var(--shadow-glow);
-
             font-weight: 600;
-
         }
-
-
 
         .sidebar-link.active::before {
-
             transform: scaleY(1);
-
         }
-
         
-
         #sidebar.collapsed {
-
             width: 80px;
-
         }
-
         
-
         #sidebar.collapsed .sidebar-text,
-
         #sidebar.collapsed .sidebar-section-title,
-
         #sidebar.collapsed .user-info-text,
-
         #sidebar.collapsed .logo-text {
-
             display: none;
-
         }
-
         
-
         #sidebar.collapsed .sidebar-link {
-
             justify-content: center;
-
             padding: 0.875rem 0;
-
             margin: 0.25rem 0.5rem;
-
         }
-
-
 
         /* ================================================
-
            BADGE COMPONENTS
-
            ================================================ */
-
         .badge {
-
             display: inline-flex;
-
             align-items: center;
-
             gap: 0.375rem;
-
             padding: 0.375rem 0.75rem;
-
             font-size: 0.688rem;
-
             font-weight: 600;
-
             border-radius: 9999px;
-
             text-transform: uppercase;
-
             letter-spacing: 0.05em;
-
         }
-
-
 
         .badge-success {
-
             background: var(--color-success-light);
-
             color: var(--color-success);
-
             border: 1px solid var(--color-success);
-
         }
-
-
 
         .badge-info {
-
             background: var(--color-info-light);
-
             color: var(--color-info);
-
             border: 1px solid var(--color-info);
-
         }
-
-
 
         /* ================================================
-
            BUTTON COMPONENTS
-
            ================================================ */
-
         .btn {
-
             display: inline-flex;
-
             align-items: center;
-
             justify-content: center;
-
             gap: 0.5rem;
-
             padding: 0.625rem 1.25rem;
-
             font-size: 0.875rem;
-
             font-weight: 600;
-
             border-radius: var(--radius-md);
-
             border: none;
-
             cursor: pointer;
-
             transition: all var(--transition-base);
-
             text-decoration: none;
-
             white-space: nowrap;
-
             position: relative;
-
             overflow: hidden;
-
         }
-
-
 
         .btn::before {
-
             content: '';
-
             position: absolute;
-
             top: 50%;
-
             left: 50%;
-
             width: 0;
-
             height: 0;
-
             border-radius: 50%;
-
             background: rgba(255, 255, 255, 0.3);
-
             transform: translate(-50%, -50%);
-
             transition: width 0.6s, height 0.6s;
-
         }
-
-
 
         .btn:hover::before {
-
             width: 300px;
-
             height: 300px;
-
         }
-
-
 
         .btn-primary {
-
             background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-
             color: white;
-
             box-shadow: var(--shadow-md);
-
         }
-
-
 
         .btn-primary:hover {
-
             box-shadow: var(--shadow-lg), var(--shadow-glow);
-
             transform: translateY(-2px);
-
         }
-
-
 
         .btn-primary:active {
-
             transform: translateY(0);
-
         }
-
-
 
         .btn-secondary {
-
             background: white;
-
             color: var(--color-slate-700);
-
             border: 1px solid var(--color-slate-300);
-
             box-shadow: var(--shadow-sm);
-
         }
-
-
 
         .btn-secondary:hover {
-
             background: var(--color-slate-50);
-
             border-color: var(--color-slate-400);
-
             box-shadow: var(--shadow-md);
-
         }
-
-
 
         .btn-success {
-
             background: linear-gradient(135deg, var(--color-success) 0%, #059669 100%);
-
             color: white;
-
             box-shadow: var(--shadow-md);
-
         }
-
-
 
         .btn-success:hover {
-
             box-shadow: var(--shadow-lg);
-
             transform: translateY(-2px);
-
         }
-
-
 
         .btn-warning {
-
             background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-
             color: white;
-
             box-shadow: var(--shadow-md);
-
         }
-
-
 
         .btn-warning:hover {
-
             box-shadow: var(--shadow-lg);
-
             transform: translateY(-2px);
-
         }
-
-
 
         .btn-info {
-
             background: linear-gradient(135deg, var(--color-info) 0%, #2563EB 100%);
-
             color: white;
-
             box-shadow: var(--shadow-md);
-
         }
-
-
 
         .btn-info:hover {
-
             box-shadow: var(--shadow-lg);
-
             transform: translateY(-2px);
-
         }
 
+        .btn-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #B91C1C 100%);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
 
+        .btn-danger:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
 
         .btn:disabled {
-
             opacity: 0.5;
-
             cursor: not-allowed;
-
             transform: none !important;
-
         }
 
-
-
         /* ================================================
-
            HEADER ENHANCEMENTS
-
            ================================================ */
-
         .header {
-
             background: rgba(255, 255, 255, 0.8);
-
             backdrop-filter: blur(20px);
-
             border-bottom: 1px solid var(--color-slate-200);
-
             box-shadow: var(--shadow-sm);
-
         }
-
-
 
         /* ================================================
-
-           MODAL TRANSITIONS
-
+           TABLE SORTING STYLES
            ================================================ */
-
-        .modal {
-
-            transition: opacity 0.2s ease-in-out;
-
+        th.sortable {
+            cursor: pointer;
+            transition: background-color 0.2s;
+            user-select: none;
         }
 
-        
-
-        .modal-container {
-
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-
-            transform: scale(0.98);
-
-            opacity: 0;
-
+        th.sortable:hover {
+            background-color: #F1F5F9;
         }
 
-        
+        .sort-icon {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-left: 4px;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+        }
 
-        .modal-active .modal-container {
-
-            transform: scale(1);
-
+        th.sorted-asc .sort-icon {
             opacity: 1;
-
+            transform: rotate(180deg);
         }
 
-        
-
-        body.modal-active {
-
-            overflow: hidden;
-
+        th.sorted-desc .sort-icon {
+            opacity: 1;
+            transform: rotate(0deg);
         }
-
-
 
         /* ================================================
-
-           MOBILE RESPONSIVE
-
+           MODAL TRANSITIONS
            ================================================ */
+        .modal {
+            transition: opacity 0.2s ease-in-out;
+        }
+        
+        .modal-container {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: scale(0.98);
+            opacity: 0;
+        }
+        
+        .modal-active .modal-container {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        body.modal-active {
+            overflow: hidden;
+        }
 
+        /* ================================================
+           MOBILE RESPONSIVE
+           ================================================ */
         @media (max-width: 768px) {
-
             #sidebar {
-
                 position: fixed;
-
                 left: 0;
-
                 top: 0;
-
                 bottom: 0;
-
                 z-index: 50;
-
                 transform: translateX(-100%);
-
                 width: 280px;
-
             }
-
             
-
             #sidebar.mobile-open {
-
                 transform: translateX(0);
-
             }
-
             
-
             #mobile-overlay {
-
                 display: none;
-
                 position: fixed;
-
                 inset: 0;
-
                 background: rgba(15, 23, 42, 0.7);
-
                 backdrop-filter: blur(4px);
-
                 z-index: 40;
-
             }
-
             
-
             #mobile-overlay.active {
-
                 display: block;
-
             }
-
-
 
             .edit-mode-indicator {
-
                 top: 80px;
-
                 right: 10px;
-
                 padding: 8px 12px;
-
                 font-size: 12px;
-
             }
-
         }
 
 
-
-
-
-     
-
+      
 /* ================================================
-
    PRINT STYLES - FIXED (SINGLE PAGE)
-
    ================================================ */
-
 /* REPLACE YOUR EXISTING @media print BLOCK WITH THIS */
 @media print {
     @page {
@@ -1416,7 +692,7 @@ td.read-only-field.bg-orange-200:hover {
         width: 100% !important;
     }
 
-    #modal-header, #edit-toggle-btn, #ppt-button, #print-button, button {
+    #modal-header, #edit-toggle-btn, #ppt-button, #excel-button, #print-button, button {
         display: none !important;
     }
 
@@ -1501,2410 +777,1821 @@ td.read-only-field.bg-orange-200:hover {
 
 
         /* Screen Styles for Tables */
-
         .report-table th, .report-table td, .report-header-table td, .report-header-table {
-
             border: 1px solid #e5e7eb;
-
         }
-
         
-
         .report-table th {
-
             background-color: #f3f4f6;
-
         }
-
     </style>
-
 </head>
-
-
 
 <body class="h-screen flex overflow-hidden">
 
-
-
     <!-- Edit Mode Indicator -->
-
     <div id="edit-mode-indicator" class="edit-mode-indicator">
-
         <div class="edit-pulse"></div>
-
         <span>Edit Mode Active</span>
-
     </div>
-
-
 
     <!-- Mobile Overlay -->
-
     <div id="mobile-overlay"></div>
-
     
-
     <!-- Mobile Toggle Button -->
-
     <button id="toggle-sidebar-btn" class="md:hidden fixed top-4 left-4 z-50 bg-slate-900 text-white p-3 rounded-xl shadow-xl hover:bg-slate-800 transition-all">
-
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-
         </svg>
-
     </button>
 
-
-
     <!-- ================================================
-
          SIDEBAR NAVIGATION
-
          ================================================ -->
-
     <aside id="sidebar" class="text-white flex flex-col h-full shrink-0 w-64">
-
         
-
         <!-- Logo Section -->
-
         <div class="h-20 flex items-center px-6 shrink-0 border-b border-white/10">
-
             <div class="flex items-center gap-3">
-
                 <div class="relative">
-
                     <svg width="40" height="40" viewBox="0 0 100 100" fill="none" class="shrink-0 drop-shadow-xl">
-
                         <defs>
-
                             <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-
                                 <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
-
                                 <stop offset="100%" style="stop-color:#B91C1C;stop-opacity:1" />
-
                             </linearGradient>
-
                         </defs>
-
                         <path d="M50 10 L85 30 L85 70 L50 90 L50 10 Z" fill="url(#logo-gradient)"/>
-
                         <path d="M50 10 L15 30 L15 70 L50 90 L50 10 Z" fill="#475569" opacity="0.8"/>
-
                         <path d="M50 10 L85 30 L50 50 L15 30 L50 10 Z" fill="#EF4444"/>
-
                     </svg>
-
                     <div class="absolute inset-0 blur-xl opacity-50 bg-red-500"></div>
-
                 </div>
-
                 <div class="logo-text flex flex-col">
-
                     <span class="font-bold text-xl tracking-tight text-white leading-tight">iPETRO</span>
-
                     <span class="text-[10px] font-bold text-red-400 tracking-widest uppercase">RBIMS Core</span>
-
                 </div>
-
             </div>
-
         </div>
-
-
 
         <!-- Navigation Links -->
-
         <div class="flex-1 overflow-y-auto py-6">
-
             <nav class="flex flex-col gap-1">
-
                 <div class="sidebar-section-title px-6 mb-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-
-                    Workspace
-
+                    Overview
                 </div>
 
-                
-
-                <a href="test.html" class="sidebar-link group" data-page="test">
-
+                <a href="dashboard.html" class="sidebar-link group" data-page="dashboard">
                     <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
                     </svg>
-
-                    <span class="sidebar-text font-medium text-sm ml-3">Inspection Log</span>
-
+                    <span class="sidebar-text font-medium text-sm ml-3">Dashboard</span>
                 </a>
-
-                
-
-                <a href="equipment.html" class="sidebar-link group" data-page="equipment">
-
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-
-                    </svg>
-
-                    <span class="sidebar-text font-medium text-sm ml-3">Equipment</span>
-
-                </a>
-
-                
-
-                <a href="inspectionplan.html" class="sidebar-link group active" data-page="inspectionplan">
-
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-
-                    </svg>
-
-                    <span class="sidebar-text font-medium text-sm ml-3">Plans</span>
-
-                </a>
-
-
-
-                <div id="admin-section" class="sidebar-section-title px-6 mb-3 mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden">
-
-                    Administration
-
-                </div>
-
-                <a href="users.html" id="users-link" class="sidebar-link group hidden" data-page="users">
-
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-
-                    </svg>
-
-                    <span class="sidebar-text font-medium text-sm ml-3">Users</span>
-
-                </a>
-
-
 
                 <div class="sidebar-section-title px-6 mb-3 mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-
-                    Account
-
+                    Workspace
                 </div>
-
-                <a href="profile.html" class="sidebar-link group" data-page="profile">
-
+                
+                <a href="test.html" class="sidebar-link group" data-page="test">
                     <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
-
-                    <span class="sidebar-text font-medium text-sm ml-3">My Profile</span>
-
+                    <span class="sidebar-text font-medium text-sm ml-3">Inspection Log</span>
+                </a>
+                
+                <a href="equipment.html" class="sidebar-link group" data-page="equipment">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    <span class="sidebar-text font-medium text-sm ml-3">Equipment</span>
+                </a>
+                
+                <a href="inspectionplan.html" class="sidebar-link group active" data-page="inspectionplan">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                    </svg>
+                    <span class="sidebar-text font-medium text-sm ml-3">Plans</span>
                 </a>
 
+                <div id="admin-section" class="sidebar-section-title px-6 mb-3 mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden">
+                    Administration
+                </div>
+                <a href="users.html" id="users-link" class="sidebar-link group hidden" data-page="users">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    <span class="sidebar-text font-medium text-sm ml-3">Users</span>
+                </a>
+
+                <div class="sidebar-section-title px-6 mb-3 mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    Account
+                </div>
+                <a href="profile.html" class="sidebar-link group" data-page="profile">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <span class="sidebar-text font-medium text-sm ml-3">My Profile</span>
+                </a>
             </nav>
-
         </div>
-
-
 
         <!-- User Profile Section -->
-
         <div class="p-4 bg-slate-900/50 border-t border-white/10 shrink-0">
-
             <div class="flex items-center gap-3 p-3 rounded-xl mb-3 bg-white/5">
-
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-sm font-bold text-white shadow-lg shrink-0 ring-2 ring-red-400/30">
-
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-sm font-bold text-white shadow-lg shrink-0 ring-2 ring-red-400/30 user-initials">
                     --
-
                 </div>
-
                 <div class="user-info-text overflow-hidden flex-1">
-
-                    <div class="text-sm font-semibold text-white truncate">Loading...</div>
-
+                    <div class="text-sm font-semibold text-white truncate user-name">Loading...</div>
                     <div class="text-[11px] text-emerald-400 flex items-center gap-2 font-medium mt-0.5">
-
                         <span class="relative flex h-2 w-2">
-
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-
                             <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-
                         </span>
-
                         System Online
-
                     </div>
-
                 </div>
-
             </div>
-
             
-
-            <button onclick="logout()" class="btn btn-primary w-full shadow-lg">
-
+            <button onclick="AuthModule.logout()" class="btn btn-primary w-full shadow-lg">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-
                 </svg>
-
                 <span class="sidebar-text relative z-10">Logout</span>
-
             </button>
-
         </div>
-
     </aside>
 
-
-
     <!-- ================================================
-
          MAIN CONTENT AREA
-
          ================================================ -->
-
     <div class="flex-1 flex flex-col h-full overflow-hidden relative">
-
         
-
         <!-- Header -->
-
         <header class="header h-20 flex items-center justify-between px-8 shrink-0 z-30">
-
             <div class="flex items-center gap-4">
-
                 <button id="desktop-toggle-btn" onclick="document.getElementById('toggle-sidebar-btn').click()" 
-
                     class="hidden md:flex text-slate-400 hover:text-slate-700 transition-all p-2 rounded-lg hover:bg-slate-100">
-
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
-
                     </svg>
-
                 </button>
-
                 <div>
-
                     <h1 class="text-xl font-bold text-slate-900 tracking-tight">Inspection Plan History</h1>
-
                     <p class="text-xs text-slate-500 mt-0.5">Historical Records & Reports (Editable)</p>
-
                 </div>
-
             </div>
-
             
-
             <div class="flex gap-3 items-center">
-
                 <div id="system-status" class="hidden md:flex badge badge-success shadow-sm">
-
                     <span class="w-2 h-2 rounded-full bg-green-500"></span> 
-
                     <span>System Ready</span>
-
                 </div>
-
             </div>
-
         </header>
 
-
-
         <!-- Main Content -->
-
         <main class="flex-1 overflow-auto p-6">
+            
+            <!-- Most Recent Inspection Section -->
+            <div id="recent-inspection-card" class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6" style="display:none;">
+                <div class="lg:col-span-4 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-6 text-white shadow-lg relative overflow-hidden">
+                    <div class="absolute right-0 top-0 h-full w-1/3 bg-white/10 skew-x-12 translate-x-12"></div>
+                    <div class="relative z-10 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xs font-bold uppercase tracking-wider text-blue-200 mb-1">Latest Inspection Performed</h2>
+                            <div class="text-3xl font-bold mb-1" id="recent-equip-no">--</div>
+                            <div class="text-blue-100 text-sm mb-4" id="recent-desc">Loading...</div>
+                            <div class="flex gap-4 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <span id="recent-date">--</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                    <span id="recent-inspector">--</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="recent-action-btn" class="bg-white text-blue-700 px-4 py-2 rounded-lg font-bold text-sm shadow-md hover:bg-blue-50 transition-colors">
+                            View Report
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-full">
+                
+                <!-- Table Tools / Search Bar -->
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center gap-4">
+                    <div class="relative w-full max-w-md">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <input type="text" id="searchInput" onkeyup="InspectionPlanModule.handleSearch(this.value)"
+                            class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-red-500 focus:border-red-500 sm:text-sm transition-shadow"
+                            placeholder="Search Equipment, Inspector or ID...">
+                    </div>
+                    <div class="text-xs text-gray-400" id="record-count">Loading records...</div>
+                </div>
 
                 <div class="overflow-auto flex-1">
-
                     <table class="min-w-full divide-y divide-gray-200">
-
                         <thead class="bg-gray-50 sticky top-0 z-10">
-
                             <tr>
-
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Insp. ID</th>
-
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Date</th>
-
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Equipment</th>
-
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Inspector</th>
-
+                                <th onclick="InspectionPlanModule.handleSort('inspection_id')" class="sortable px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest cursor-pointer hover:bg-gray-100 transition-colors select-none">
+                                    <div class="flex items-center">
+                                        Insp. ID
+                                        <svg class="sort-icon w-4 h-4 ml-1 opacity-50" data-col="inspection_id" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </th>
+                                <th onclick="InspectionPlanModule.handleSort('inspected_at')" class="sortable px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest cursor-pointer hover:bg-gray-100 transition-colors select-none">
+                                    <div class="flex items-center">
+                                        Date
+                                        <svg class="sort-icon w-4 h-4 ml-1 opacity-50" data-col="inspected_at" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </th>
+                                <th onclick="InspectionPlanModule.handleSort('equipment_no')" class="sortable px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest cursor-pointer hover:bg-gray-100 transition-colors select-none">
+                                    <div class="flex items-center">
+                                        Equipment
+                                        <svg class="sort-icon w-4 h-4 ml-1 opacity-50" data-col="equipment_no" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </th>
+                                <th onclick="InspectionPlanModule.handleSort('inspected_by')" class="sortable px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest cursor-pointer hover:bg-gray-100 transition-colors select-none">
+                                    <div class="flex items-center">
+                                        Inspector
+                                        <svg class="sort-icon w-4 h-4 ml-1 opacity-50" data-col="inspected_by" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </th>
                                 <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-widest">Parts Logged</th>
-
                                 <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">Actions</th>
-
                             </tr>
-
                         </thead>
-
                         <tbody id="history-list" class="bg-white divide-y divide-gray-200">
-
                             <tr>
-
                                 <td colspan="6" class="px-6 py-12 text-center text-gray-400">Loading history records...</td>
-
                             </tr>
-
                         </tbody>
-
                     </table>
-
                 </div>
-
             </div>
-
         </main>
-
     </div>
 
-
-
     <!-- ================================================
-
-         REPORT MODAL (WITH EDIT MODE)
-
+         MODAL (WITH EDIT MODE)
          ================================================ -->
-
     <div id="modal" class="modal opacity-0 pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-4">
-
         <div class="modal-overlay absolute inset-0 bg-gray-900/70 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
-
         <div class="modal-container bg-white w-full max-w-6xl rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-[95vh]">
-
             
-
             <!-- Modal Header -->
-
             <div id="modal-header" class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-
                 <h3 class="text-lg font-bold text-gray-800" id="modal-title">Inspection Plan</h3>
-
                 <div class="flex gap-3 items-center">
-
                     <!-- Edit Mode Toggle -->
-
                     <button id="edit-toggle-btn" onclick="toggleEditMode()" class="btn btn-secondary shadow-md" style="display: none;">
-
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-
                         </svg>
-
                         <span class="relative z-10" id="edit-btn-text">Enable Edit</span>
-
                     </button>
-
-
 
                     <button id="ppt-button" onclick="triggerPPTExport()" class="btn btn-warning shadow-md">
-
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
-
                         </svg>
-
                         <span class="relative z-10">Export PPT</span>
-
                     </button>
 
-
-
-                <button id="print-button" onclick="printReport()" class="btn btn-info shadow-md">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-    </svg>
-    <span class="relative z-10">Print Report</span>
-</button>
-
-                    
-
-                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-
+                    <!-- ADDED: Excel Export Button -->
+                    <button id="excel-button" onclick="triggerExcelExport()" class="btn btn-success shadow-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
-
+                        <span class="relative z-10">Export Excel</span>
                     </button>
 
+                    <button id="print-button" onclick="printReport()" class="btn btn-info shadow-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                        </svg>
+                        <span class="relative z-10">Print Report</span>
+                    </button>
+                    
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
                 </div>
-
             </div>
-
             
-
             <!-- Modal Content (Print Area) -->
-
             <div id="modal-print-area" class="p-8 overflow-y-auto bg-white">
-
                 <div id="modal-content" class="text-sm">Loading details...</div>
-
             </div>
-
         </div>
-
     </div>
 
-
-
     <!-- ================================================
-
          JAVASCRIPT APPLICATION LOGIC
-
          ================================================ -->
-
     <script>
-
         // ================================================
-
         // GLOBAL CONFIGURATION
-
         // ================================================
-
         const CONFIG = {
-
             SWAL_OPTIONS: {
-
                 heightAuto: false,
-
                 backdrop: true,
-
                 allowOutsideClick: true
-
             }
-
         };
 
-
-
         // ================================================
-
         // EDIT MODE STATE
-
         // ================================================
-
         let isEditMode = false;
 
-
-
-
-
-
-
-
-
- 
-
-      /**
-
- * Toggle edit mode for the report
-
- * Handles permission checks, UI updates, and placeholder text management.
-
- */
-
-function toggleEditMode() {
-
-    // 1. Permission Check
-
-    const currentUser = AuthModule.getCurrentUser();
-
-    
-
-    if (!currentUser || currentUser.role !== 'admin') {
-
-        Swal.fire({
-
-            ...CONFIG.SWAL_OPTIONS,
-
-            title: 'Permission Denied',
-
-            html: '<p class="text-sm text-gray-600">Only administrators can modify inspection records.</p>',
-
-            icon: 'warning',
-
-            timer: 3000,
-
-            toast: true,
-
-            position: 'top-end',
-
-            showConfirmButton: false,
-
-            background: '#FEF3C7',
-
-            color: '#92400E'
-
-        });
-
-        return;
-
-    }
-
-    
-
-    // 2. Toggle State
-
-    isEditMode = !isEditMode;
-
-    const editBtnText = document.getElementById('edit-btn-text');
-
-    const indicator = document.getElementById('edit-mode-indicator');
-
-    const editableElements = document.querySelectorAll('[data-editable="true"]');
-
-    
-
-    // Define professional placeholders
-
-    const notesPlaceholder = '<span class="text-gray-400 italic placeholder-text">No specific observations recorded.</span>';
-
-    const recsPlaceholder = '<span class="text-gray-400 italic placeholder-text">No recommendations provided.</span>';
-
-
-
-    if (isEditMode) {
-
-        // ============================================
-
-        // ENABLE EDIT MODE
-
-        // ============================================
-
-        editBtnText.textContent = 'Disable Edit';
-
-        indicator.classList.add('active');
-
-        
-
-        editableElements.forEach(el => {
-
-            el.setAttribute('contenteditable', 'true');
-
-            
-
-            // CLEANUP: If the field currently holds a placeholder, wipe it clean for typing
-
-            const text = el.textContent.trim();
-
-            const hasPlaceholder = el.querySelector('.placeholder-text');
-
-            
-
-            // Check specific IDs to ensure we only clear the text areas, not table data
-
-            if (el.id === 'notes-field' && (hasPlaceholder || text.includes('No specific observations') || text.includes('Click "Enable Edit"'))) {
-
-                el.innerHTML = ''; // Clear for fresh input
-
-            } 
-
-            else if (el.id === 'recs-field' && (hasPlaceholder || text.includes('No recommendations') || text.includes('Click "Enable Edit"'))) {
-
-                el.innerHTML = ''; // Clear for fresh input
-
-            }
-
-        });
-
-        
-
-        // Enable validation listeners for numeric fields
-
-        addValidationListeners();
-
-        
-
-        Swal.fire({
-
-            ...CONFIG.SWAL_OPTIONS,
-
-            title: 'Edit Mode Active',
-
-            html: '<p class="text-sm text-gray-600">You can now modify the inspection record.</p>',
-
-            icon: 'info',
-
-            timer: 2000,
-
-            toast: true,
-
-            position: 'top-end',
-
-            showConfirmButton: false,
-
-            background: '#DBEAFE',
-
-            color: '#1E40AF'
-
-        });
-
-
-
-    } else {
-
-        // ============================================
-
-        // DISABLE EDIT MODE (SAVE/VIEW STATE)
-
-        // ============================================
-
-        editBtnText.textContent = 'Enable Edit';
-
-        indicator.classList.remove('active');
-
-        
-
-        editableElements.forEach(el => {
-
-            el.setAttribute('contenteditable', 'false');
-
-            el.classList.remove('editable-invalid', 'editable-valid');
-
-            
-
-            // RESTORE: If the user left a field empty, put back the professional placeholder
-
-            const text = el.textContent.trim();
-
-            
-
-            if (text === '') {
-
-                if (el.id === 'notes-field') {
-
-                    el.innerHTML = notesPlaceholder;
-
-                } else if (el.id === 'recs-field') {
-
-                    el.innerHTML = recsPlaceholder;
-
-                } else {
-
-                    // For standard table cells, revert to a dash to keep the table structure
-
-                    el.textContent = '-'; 
-
-                    // Update risk rating if this was a temp/pressure field that got cleared
-
-                    if(el.dataset.validation) {
-
-                        updateRiskRatingForRow(el);
-
-                    }
-
-                }
-
-            }
-
-        });
-
-        
-
-        // Disable validation listeners
-
-        removeValidationListeners();
-
-    }
-
-}
-
-
-
-// Add these helper functions for validation
-
-function addValidationListeners() {
-
-    // Add input validation for temperature and pressure fields
-
-    const tempPressureFields = document.querySelectorAll('[data-validation]');
-
-    tempPressureFields.forEach(field => {
-
-        field.addEventListener('input', validateNumericField);
-
-        field.addEventListener('blur', validateNumericRange);
-
-        field.addEventListener('focus', () => {
-
-            // Store original value on focus
-
-            if (!field.dataset.originalValue) {
-
-                field.dataset.originalValue = field.textContent.trim();
-
-            }
-
-        });
-
-        // Add input event for immediate risk rating update
-
-        field.addEventListener('input', function() {
-
-            // Debounce the risk rating update
-
-            clearTimeout(this.riskUpdateTimeout);
-
-            this.riskUpdateTimeout = setTimeout(() => {
-
-                updateRiskRatingForRow(this);
-
-            }, 300);
-
-        });
-
-    });
-
-}
-
-function removeValidationListeners() {
-
-    const tempPressureFields = document.querySelectorAll('[data-validation]');
-
-    tempPressureFields.forEach(field => {
-
-        field.removeEventListener('input', validateNumericField);
-
-        field.removeEventListener('blur', validateNumericRange);
-
-    });
-
-}
-
-
-
-function validateNumericField(event) {
-
-    const field = event.target;
-
-    const value = field.textContent.trim();
-
-    
-
-    // Allow empty, dash, or numeric values
-
-    if (value === '' || value === '-' || /^-?\d*\.?\d*$/.test(value)) {
-
-        field.classList.remove('editable-invalid');
-
-        field.classList.add('editable-valid');
-
-    } else {
-
-        field.classList.remove('editable-valid');
-
-        field.classList.add('editable-invalid');
-
-    }
-
-}
-
-
-
-// Add this function after the validateNumericField function
-
-function calculateRiskRating(temp, pressure) {
-
-    const tempValue = temp === '-' || temp === '' ? 0 : parseFloat(temp);
-
-    const pressureValue = pressure === '-' || pressure === '' ? 0 : parseFloat(pressure);
-
-    
-
-    if (isNaN(tempValue) || isNaN(pressureValue)) {
-
-        return 'LOW'; // Default if invalid
-
-    }
-
-    
-
-    // Updated logic for 4 risk categories
-
-    if (tempValue > 400 || pressureValue > 8) {
-
-        return 'HIGH';
-
-    } else if (tempValue > 300 || pressureValue > 6) {
-
-        return 'MEDIUM HIGH';
-
-    } else if (tempValue > 200 || pressureValue > 5) {
-
-        return 'MEDIUM';
-
-    } else {
-
-        return 'LOW';
-
-    }
-
-}
-
-
-
-function updateRiskRatingForRow(field) {
-
-    const row = field.closest('tr');
-
-    if (!row) return;
-
-    
-
-    // Find temperature and pressure fields in the same row
-
-    const tempField = row.querySelector('[data-validation="temp"]');
-
-    const pressureField = row.querySelector('[data-validation="pressure"]');
-
-    const riskCell = row.querySelector('.read-only-field');
-
-    
-
-    if (!tempField || !pressureField || !riskCell) return;
-
-    
-
-    // Get current values
-
-    const temp = tempField.textContent.trim();
-
-    const pressure = pressureField.textContent.trim();
-
-    
-
-    // Calculate new risk rating
-
-    const newRiskRating = calculateRiskRating(temp, pressure);
-
-    
-
-    // Update risk rating cell
-
-const riskColors = {
-
-    'LOW': 'bg-green-200',
-
-    'MEDIUM': 'bg-yellow-200',
-
-    'MEDIUM HIGH': 'bg-orange-200',  // Add orange for MEDIUM HIGH
-
-    'HIGH': 'bg-red-200'
-
-};
-
-    
-
-    // Remove all risk color classes
-
-    riskCell.classList.remove('bg-green-200', 'bg-yellow-200', 'bg-red-200');
-
-    
-
-    // Add new risk color class
-
-    if (riskColors[newRiskRating]) {
-
-        riskCell.classList.add(riskColors[newRiskRating]);
-
-    }
-
-    
-
-    // Update risk rating text
-
-    riskCell.textContent = newRiskRating;
-
-    
-
-    // Store the updated risk rating in the field
-
-    riskCell.dataset.riskRating = newRiskRating;
-
-}
-
-
-
-function validateNumericRange(event) {
-
-    const field = event.target;
-
-    const value = parseFloat(field.textContent.trim());
-
-    
-
-    // Skip if value is not a number or is dash
-
-    if (isNaN(value) || field.textContent.trim() === '-') {
-
-        field.classList.remove('editable-invalid', 'editable-valid');
-
-        updateRiskRatingForRow(field); // Still update risk rating
-
-        return;
-
-    }
-
-    
-
-    const min = parseFloat(field.dataset.min);
-
-    const max = parseFloat(field.dataset.max);
-
-    const validationType = field.dataset.validation;
-
-    
-
-    let isValid = true;
-
-    let message = '';
-
-    
-
-    if (validationType === 'temp') {
-
-        if (value < min || value > max) {
-
-            isValid = false;
-
-            message = `Temperature must be between ${min}°C and ${max}°C`;
-
-        }
-
-    } else if (validationType === 'pressure') {
-
-        if (value < min || value > max) {
-
-            isValid = false;
-
-            message = `Pressure must be between ${min} MPa and ${max} MPa`;
-
-        }
-
-    }
-
-    
-
-    if (!isValid) {
-
-        field.classList.add('editable-invalid');
-
-        field.classList.remove('editable-valid');
-
-        
-
-        // Show warning tooltip
-
-        Swal.fire({
-
-            ...CONFIG.SWAL_OPTIONS,
-
-            title: 'Invalid Value',
-
-            text: message,
-
-            icon: 'warning',
-
-            timer: 2000,
-
-            toast: true,
-
-            position: 'top-end',
-
-            showConfirmButton: false,
-
-            background: '#FEF3C7',
-
-            color: '#92400E'
-
-        });
-
-        
-
-        // Revert to original value
-
-        setTimeout(() => {
-
-            field.textContent = field.dataset.originalValue || '-';
-
-            field.classList.remove('editable-invalid', 'editable-valid');
-
-            updateRiskRatingForRow(field); // Update risk rating after revert
-
-        }, 100);
-
-    } else {
-
-        field.classList.remove('editable-invalid');
-
-        field.classList.add('editable-valid');
-
-        
-
-        // Update risk rating when temperature or pressure changes
-
-        updateRiskRatingForRow(field);
-
-    }
-
-}
-
-
-
-        // ================================================
-
-        // AUTHENTICATION MODULE
-
-        // ================================================
-
-        const AuthModule = (function() {
-
-            let currentUser = null;
-
-
-
-            async function initAuth() {
-
-                try {
-
-                    const res = await fetch('/auth/me', {
-
-                        credentials: 'include'
-
-                    });
-
-                    
-
-                    const data = await res.json();
-
-                    
-
-                    if (data.isAuthenticated && data.user) {
-
-                        currentUser = data.user;
-
-                        updateUserUI();
-
-                    } else {
-
-                        console.log('Not authenticated - server will handle redirect');
-
-                    }
-
-                } catch (error) {
-
-                    console.error('Auth check error:', error);
-
-                }
-
-            }
-
-
-
-           function updateUserUI() {
-
-                if (!currentUser) return;
-
-                
-
-                const userInitials = document.querySelector('.w-10.h-10.rounded-full');
-
-                if (userInitials) {
-
-                    userInitials.textContent = currentUser.username.substring(0, 2).toUpperCase();
-
-                }
-
-                
-
-                const userNameElement = document.querySelector('.user-info-text .text-sm');
-
-                if (userNameElement) {
-
-                    userNameElement.textContent = currentUser.username;
-
-                }
-
-                
-
-                // --- ADD THIS CODE BLOCK ---
-
-                // Control visibility of the "Enable Edit" button
-
-                const editBtn = document.getElementById('edit-toggle-btn');
-
-                if (editBtn) {
-
-                    if (currentUser.role === 'admin') {
-
-                        editBtn.style.display = 'flex'; // Show for admin
-
-                    } else {
-
-                        editBtn.style.display = 'none'; // Hide for everyone else
-
-                    }
-
-                }
-
-                // ---------------------------
-
-
-
-                // Show admin section for admin users
-
-                if (currentUser.role === 'admin') {
-
-                    const adminSection = document.getElementById('admin-section');
-
-                    const usersLink = document.getElementById('users-link');
-
-                    if (adminSection) adminSection.classList.remove('hidden');
-
-                    if (usersLink) usersLink.classList.remove('hidden');
-
-                } else {
-
-                    const deleteButtons = document.querySelectorAll('button[onclick*="delete"], .delete-btn');
-
-                    deleteButtons.forEach(btn => {
-
-                        btn.style.display = 'none';
-
-                    });
-
-                }
-
-                
-
-                console.log('User UI updated:', currentUser.username, '(' + currentUser.role + ')');
-
-            }
-
-
-
-            async function logout() {
-
-                const result = await Swal.fire({
-
-                    ...CONFIG.SWAL_OPTIONS,
-
-                    title: 'Logout?',
-
-                    text: "Are you sure you want to end your session?",
-
-                    icon: 'warning',
-
-                    showCancelButton: true,
-
-                    confirmButtonColor: '#DC2626',
-
-                    cancelButtonColor: '#475569',
-
-                    confirmButtonText: 'Yes, logout',
-
-                    cancelButtonText: 'Cancel'
-
-                });
-
-
-
-                if (!result.isConfirmed) return;
-
-                
-
-                try {
-
-                    const response = await fetch('/auth/logout', {
-
-                        method: 'POST',
-
-                        credentials: 'include'
-
-                    });
-
-                    
-
-                    const data = await response.json();
-
-                    
-
-                    if (data.success) {
-
-                        window.location.href = data.redirect || '/';
-
-                    } else {
-
-                        Swal.fire({
-
-                            ...CONFIG.SWAL_OPTIONS,
-
-                            title: 'Logout Failed',
-
-                            text: 'Please try again.',
-
-                            icon: 'error',
-
-                            confirmButtonColor: '#DC2626'
-
-                        });
-
-                    }
-
-                } catch (error) {
-
-                    console.error('Logout error:', error);
-
-                    Swal.fire({
-
-                        ...CONFIG.SWAL_OPTIONS,
-
-                        title: 'System Error',
-
-                        text: 'An error occurred during logout.',
-
-                        icon: 'error',
-
-                        confirmButtonColor: '#475569'
-
-                    });
-
-                }
-
-            }
-
-
-
-            function getCurrentUser() {
-
-                return currentUser;
-
-            }
-
-
-
-            return {
-
-                init: initAuth,
-
-                logout: logout,
-
-                getCurrentUser: getCurrentUser
-
-            };
-
-        })();
-
-
-
-        window.logout = AuthModule.logout;
-
-
-
-        // ================================================
-
-        // SIDEBAR MODULE
-
-        // ================================================
-
-        const SidebarModule = (function() {
-
-            function init() {
-
-                const sidebar = document.getElementById('sidebar');
-
-                const toggleBtn = document.getElementById('toggle-sidebar-btn');
-
-                const mobileOverlay = document.getElementById('mobile-overlay');
-
-                
-
-                document.querySelectorAll('.sidebar-link[data-page="inspectionplan"]').forEach(link => {
-
-                    link.classList.add('active');
-
-                });
-
-                
-
-                function toggleSidebar() {
-
-                    if (window.innerWidth <= 768) { 
-
-                        sidebar.classList.toggle('mobile-open'); 
-
-                        mobileOverlay.classList.toggle('active'); 
-
-                    } else { 
-
-                        sidebar.classList.toggle('collapsed'); 
-
-                        document.body.classList.toggle('sidebar-collapsed'); 
-
-                        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed')); 
-
-                    }
-
-                }
-
-                
-
-                toggleBtn.addEventListener('click', toggleSidebar);
-
-                mobileOverlay.addEventListener('click', toggleSidebar);
-
-                
-
-                if (window.innerWidth > 768 && localStorage.getItem('sidebarCollapsed') === 'true') { 
-
-                    sidebar.classList.add('collapsed'); 
-
-                    document.body.classList.add('sidebar-collapsed'); 
-
-                }
-
-            }
-
-
-
-            return {
-
-                init: init
-
-            };
-
-        })();
-
-
-
-        // ================================================
-
-        // MODAL MODULE
-
-        // ================================================
-
-        const ModalModule = (function() {
-
-            const modal = document.getElementById('modal');
-
-
-
-            function openModal() {
-
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-
-                document.body.classList.add('modal-active');
-
-                setTimeout(() => modal.classList.add('modal-active'), 10);
-
-            }
-
-
-
-            function closeModal() {
-
-                // Disable edit mode when closing
-
-                if (isEditMode) {
-
-                    toggleEditMode();
-
-                }
-
-                
-
-                modal.classList.remove('modal-active');
-
-                setTimeout(() => {
-
-                    modal.classList.add('opacity-0', 'pointer-events-none');
-
-                    document.body.classList.remove('modal-active');
-
-                }, 200);
-
-            }
-
-
-
-            return {
-
-                open: openModal,
-
-                close: closeModal
-
-            };
-
-        })();
-
-
-
-        window.openModal = ModalModule.open;
-
-        window.closeModal = ModalModule.close;
-
-
-
-        // ================================================
-
-        // INSPECTION PLAN MODULE
-
-        // ================================================
-
-        const InspectionPlanModule = (function() {
-
-            const modalTitle = document.getElementById('modal-title');
-
-            const modalContent = document.getElementById('modal-content');
-
-            let currentReportData = null;
-
-
-
-            async function loadHistory() {
-
-                try {
-
-                    const res = await fetch('http://localhost:3000/api/inspection-history', {
-
-                        credentials: 'include'
-
-                    });
-
-                    const result = await res.json();
-
-                    const tbody = document.getElementById('history-list');
-
-                    
-
-                    if (result.data.length === 0) {
-
-                        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No inspection records found.</td></tr>';
-
-                        return;
-
-                    }
-
-                    
-
-                    tbody.innerHTML = result.data.map(insp => `
-
-                        <tr class="hover:bg-gray-50 transition-colors group">
-
-                            <td class="px-6 py-4 text-sm font-medium text-gray-900">#${insp.inspection_id}</td>
-
-                            <td class="px-6 py-4 text-sm text-gray-500">${new Date(insp.inspected_at).toLocaleString()}</td>
-
-                            <td class="px-6 py-4 text-sm text-gray-700">
-
-                                <div class="font-bold text-gray-900">${insp.equipment_no}</div>
-
-                                <div class="text-xs text-gray-500 mt-0.5">${insp.equipment_desc}</div>
-
-                            </td>
-
-                                <td class="px-6 py-4 text-sm text-gray-600 flex items-center gap-2">
-
-                            <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600">
-
-                                ${(insp.inspected_by || 'NA').substring(0, 2).toUpperCase()}
-
-                            </div>
-
-                            
-
-                            ${insp.inspected_by || '<span class="text-gray-400 italic">Unassigned</span>'}
-
-                        </td>
-
-                            <td class="px-6 py-4 text-sm text-gray-500 text-center">
-
-                                <span class="bg-blue-50 text-blue-600 py-1 px-3 rounded-full text-xs font-bold border border-blue-100">${insp.part_count}</span>
-
-                            </td>
-
-                            <td class="px-6 py-4 text-right text-sm font-medium">
-
-                                <button onclick="generatePlan(${insp.inspection_id})" class="btn btn-success text-xs">
-
-                                    Generate Plan
-
-                                </button>
-
-                            </td>
-
-                        </tr>
-
-                    `).join('');
-
-                } catch (err) {
-
-                    console.error(err);
-
-                    const tbody = document.getElementById('history-list');
-
-                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-red-500">Error loading history.</td></tr>';
-
-                }
-
-            }
-
-
-
-async function generatePlan(inspectionId) {
-
-    modalTitle.innerText = `Inspection Plan for #${inspectionId}`;
-
-    modalContent.innerHTML = '<div class="flex flex-col items-center justify-center py-12"><div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div><p class="text-gray-500">Generating Report...</p></div>';
-
-    ModalModule.open();
-
-    
-
-    try {
-
-        const res = await fetch(`http://localhost:3000/api/inspection-plan/${inspectionId}`, {
-
-            credentials: 'include'
-
-        });
-
-        const result = await res.json();
-
-        
-
-        if (result.success) {
-
-            currentReportData = result.data;
-
+        /**
+         * Toggle edit mode for the report
+         * Handles permission checks, UI updates, and placeholder text management.
+         */
+        function toggleEditMode() {
+            // 1. Permission Check
             const currentUser = AuthModule.getCurrentUser();
-
-            const isAdmin = currentUser && currentUser.role === 'admin';
-
             
-
-            // Generate the report HTML with the correct pressure range (0-10 MPa)
-
-            modalContent.innerHTML = createReportHTML(result.data, isAdmin);
-
+            if (!currentUser || currentUser.role !== 'admin') {
+                Swal.fire({
+                    ...CONFIG.SWAL_OPTIONS,
+                    title: 'Permission Denied',
+                    html: '<p class="text-sm text-gray-600">Only administrators can modify inspection records.</p>',
+                    icon: 'warning',
+                    timer: 3000,
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    background: '#FEF3C7',
+                    color: '#92400E'
+                });
+                return;
+            }
             
-
-            const editButton = document.getElementById('edit-toggle-btn');
-
+            // 2. Toggle State
+            isEditMode = !isEditMode;
+            const editBtnText = document.getElementById('edit-btn-text');
+            const indicator = document.getElementById('edit-mode-indicator');
+            const editableElements = document.querySelectorAll('[data-editable="true"]');
             
+            // Define professional placeholders
+            const notesPlaceholder = '<span class="text-gray-400 italic placeholder-text">No specific observations recorded.</span>';
+            const recsPlaceholder = '<span class="text-gray-400 italic placeholder-text">No recommendations provided.</span>';
 
-            if (currentUser && currentUser.role === 'admin') {
+            // 3. Toggle Risk Dropdowns
+            const riskDropdowns = document.querySelectorAll('.risk-dropdown');
+            riskDropdowns.forEach(select => {
+                if (isEditMode) {
+                    select.removeAttribute('disabled');
+                } else {
+                    select.setAttribute('disabled', 'true');
+                }
+            });
 
-                editButton.style.display = 'inline-flex';
-
-                editButton.disabled = false;
-
-                editButton.querySelector('#edit-btn-text').textContent = 'Enable Edit';
-
+            if (isEditMode) {
+                // ============================================
+                // ENABLE EDIT MODE
+                // ============================================
+                editBtnText.textContent = 'Disable Edit';
+                indicator.classList.add('active');
                 
-
-                // Initialize risk ratings based on current values when admin
-
-             // Replace this section in the generatePlan function
-
-setTimeout(() => {
-
-    const rows = modalContent.querySelectorAll('tbody tr');
-
-    rows.forEach(row => {
-
-        const tempField = row.querySelector('[data-validation="temp"]');
-
-        const pressureField = row.querySelector('[data-validation="pressure"]');
-
-        if (tempField && pressureField) {
-
-            // Store original values for validation
-
-            if (!tempField.dataset.originalValue) {
-
-                tempField.dataset.originalValue = tempField.textContent.trim();
-
-            }
-
-            if (!pressureField.dataset.originalValue) {
-
-                pressureField.dataset.originalValue = pressureField.textContent.trim();
-
-            }
-
-            
-
-            // Initialize risk rating for this row
-
-            updateRiskRatingForRow(tempField);
-
-        }
-
-    });
-
-    
-
-    // Add validation listeners if in edit mode
-
-    if (isEditMode) {
-
-        addValidationListeners();
-
-    }
-
-}, 100);
+                editableElements.forEach(el => {
+                    el.setAttribute('contenteditable', 'true');
+                    
+                    // CLEANUP: If the field currently holds a placeholder, wipe it clean for typing
+                    const text = el.textContent.trim();
+                    const hasPlaceholder = el.querySelector('.placeholder-text');
+                    
+                    // Check specific IDs to ensure we only clear the text areas, not table data
+                    if (el.id === 'notes-field' && (hasPlaceholder || text.includes('No specific observations') || text.includes('Click "Enable Edit"'))) {
+                        el.innerHTML = ''; // Clear for fresh input
+                    } 
+                    else if (el.id === 'recs-field' && (hasPlaceholder || text.includes('No recommendations') || text.includes('Click "Enable Edit"'))) {
+                        el.innerHTML = ''; // Clear for fresh input
+                    }
+                });
+                
+                // Enable validation listeners for numeric fields
+                addValidationListeners();
+                
+                Swal.fire({
+                    ...CONFIG.SWAL_OPTIONS,
+                    title: 'Edit Mode Active',
+                    html: '<p class="text-sm text-gray-600">You can now modify the inspection record.</p>',
+                    icon: 'info',
+                    timer: 2000,
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    background: '#DBEAFE',
+                    color: '#1E40AF'
+                });
 
             } else {
-
-                editButton.style.display = 'none';
-
-                // Ensure edit mode is disabled for non-admins
-
-                if (isEditMode) {
-
-                    isEditMode = false;
-
-                    const indicator = document.getElementById('edit-mode-indicator');
-
-                    const editableElements = document.querySelectorAll('[data-editable]');
-
-                    editableElements.forEach(el => {
-
-                        el.setAttribute('contenteditable', 'false');
-
-                    });
-
-                    indicator.classList.remove('active');
-
-                }
-
+                // ============================================
+                // DISABLE EDIT MODE (SAVE/VIEW STATE)
+                // ============================================
+                editBtnText.textContent = 'Enable Edit';
+                indicator.classList.remove('active');
+                
+                editableElements.forEach(el => {
+                    el.setAttribute('contenteditable', 'false');
+                    el.classList.remove('editable-invalid', 'editable-valid');
+                    
+                    // RESTORE: If the user left a field empty, put back the professional placeholder
+                    const text = el.textContent.trim();
+                    
+                    if (text === '') {
+                        if (el.id === 'notes-field') {
+                            el.innerHTML = notesPlaceholder;
+                        } else if (el.id === 'recs-field') {
+                            el.innerHTML = recsPlaceholder;
+                        } else {
+                            // For standard table cells, revert to a dash to keep the table structure
+                            el.textContent = '-'; 
+                            // Update risk rating if this was a temp/pressure field that got cleared
+                            if(el.dataset.validation) {
+                                updateRiskRatingForRow(el);
+                            }
+                        }
+                    }
+                });
+                
+                // Disable validation listeners
+                removeValidationListeners();
             }
-
-        } else {
-
-            modalContent.innerHTML = '<p class="text-red-500 text-center py-10">Could not load report data.</p>';
-
         }
 
-    } catch(e) {
-
-        console.error('Error loading inspection plan:', e);
-
-        modalContent.innerHTML = `<div class="text-center py-10">
-
-            <div class="text-red-500 text-lg font-bold mb-2">Error Loading Report</div>
-
-            <p class="text-gray-600">${e.message || 'Please try again later.'}</p>
-
-        </div>`;
-
-    }
-
-}
-
-
-// Replace createReportHTML with this version
-function createReportHTML(data, isAdmin = false) {
-    const insp = data.inspection;
-    const parts = data.parts;
-    const methods = data.methods || [];
-    
-    // Risk Colors
-    const riskColors = {
-        'LOW': 'bg-green-200',
-        'MEDIUM': 'bg-yellow-200',
-        'HIGH': 'bg-red-200',
-        'MEDIUM HIGH': 'bg-orange-200'
-    };
-
-    // Attributes
-    const editableAttr = isAdmin ? 'data-editable="true"' : '';
-    const contentEditableAttr = isAdmin ? 'contenteditable="false"' : '';
-    const tempValidation = isAdmin ? 'data-validation="temp" data-min="-50" data-max="500"' : '';
-    const pressureValidation = isAdmin ? 'data-validation="pressure" data-min="0" data-max="10"' : '';
-
-    // Defaults
-    const defaultNotes = '<span class="text-gray-400 italic placeholder-text">No specific observations recorded.</span>';
-    const defaultRecs = '<span class="text-gray-400 italic placeholder-text">No recommendations provided.</span>';
-
-    const notesContent = (insp.notes && insp.notes.trim() !== "") ? insp.notes : defaultNotes;
-    const recsContent = (insp.recommendations && insp.recommendations.trim() !== "") ? insp.recommendations : defaultRecs;
-
-    // 1. Header (MODIFIED: Removed Rev, extended PMT colspan)
-    let header = `
-        <div class="mb-6 border-b-2 border-gray-800 pb-4">
-            <div class="flex justify-between items-center mb-4">
-                <div class="w-1/4"></div>
-                <div class="w-2/4 text-center">
-                    <h1 class="text-3xl font-bold text-gray-900">INSPECTION PLAN</h1>
-                    <p class="text-sm text-gray-500 uppercase font-bold">On-Stream Inspection Record</p>
-                </div>
-                <div class="w-1/4 text-right text-xs text-gray-400">ID: #${insp.inspection_id}</div>
-            </div>
-
-            <table class="w-full border-collapse report-header-table text-sm" width="100%">
-                <tr>
-                    <td class="p-3 font-bold bg-gray-50 w-1/6 border-r border-gray-200">Description</td>
-                    <td class="p-3 font-medium text-gray-900" colspan="3"><span ${editableAttr} ${contentEditableAttr}>${insp.equipment_desc || '-'}</span></td>
-                    <td class="p-3 font-bold bg-gray-50 w-1/6 border-r border-gray-200">Unit</td>
-                    <td class="p-3 font-medium text-gray-900" colspan="2">iPETRO</td>
-                </tr>
-                <tr>
-                    <td class="p-3 font-bold bg-gray-50 border-r border-gray-200">Tag No.</td>
-                    <td class="p-3 font-mono font-bold text-lg text-gray-900"><span ${editableAttr} ${contentEditableAttr}>${insp.equipment_no || '-'}</span></td>
-                    <td class="p-3 font-bold bg-gray-50 w-1/6 border-r border-gray-200">PMT No.</td>
-                    <td class="p-3 font-medium text-gray-900" colspan="3"><span ${editableAttr} ${contentEditableAttr}>${insp.pmt_no || '-'}</span></td>
-                </tr>
-            </table>
-        </div>
-    `;
-
-    // 2. Parts Table
-    let partsTable = `
-        <div class="mb-8">
-            <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-red-600 pl-2">Component Analysis</h3>
-            <table class="w-full border-collapse report-table mb-4 text-sm" width="100%">
-                <thead class="bg-gray-100 text-gray-800 font-bold uppercase text-xs">
-                    <tr>
-                        <th class="p-3 border border-gray-300" rowspan="2">Fluid</th>
-                        <th class="p-3 border border-gray-300" rowspan="2">Component</th>
-                        <th class="p-3 border border-gray-300" rowspan="2">Code</th>
-                        <th class="p-3 border border-gray-300" colspan="3">Material</th>
-                        <th class="p-3 border border-gray-300" rowspan="2">Insul.</th>
-                        <th class="p-3 border border-gray-300" colspan="2">Op. Param</th>
-                        <th class="p-3 border border-gray-300" rowspan="2">Risk</th>
-                        <th class="p-3 border border-gray-300" rowspan="2">C. Group</th>
-                    </tr>
-                    <tr>
-                        <th class="p-2 border border-gray-300 bg-gray-50">Type</th>
-                        <th class="p-2 border border-gray-300 bg-gray-50">Spec</th>
-                        <th class="p-2 border border-gray-300 bg-gray-50">Gr</th>
-                        <th class="p-2 border border-gray-300 bg-gray-50">T(°C)</th>
-                        <th class="p-2 border border-gray-300 bg-gray-50">P(MPa)</th>
-                    </tr>
-                </thead>
-                <tbody class="text-gray-700">
-                    ${parts.map(p => `
-                        <tr class="hover:bg-gray-50">
-                            <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.fluid || '-'}</span></td>
-                            <td class="p-4 font-bold border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.part_name || '-'}</span></td>
-                            <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.design_code || insp.design_code || '-'}</span></td>
-                            <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.type || '-'}</span></td>
-                            <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.spec || '-'}</span></td>
-                            <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.grade || '-'}</span></td>
-                            <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.insulation ? (p.insulation.toLowerCase().startsWith('y') ? 'Y' : 'N') : 'N'}</span></td>
-                            <td class="p-4 text-right font-mono border border-gray-200"><span ${editableAttr} ${contentEditableAttr} ${tempValidation}>${p.operating_temp || p.design_temp || '-'}</span></td>
-                            <td class="p-4 text-right font-mono border border-gray-200"><span ${editableAttr} ${contentEditableAttr} ${pressureValidation}>${p.operating_pressure || p.design_pressure || '-'}</span></td>
-                            <td class="p-4 text-center font-bold border border-black read-only-field ${riskColors[p.current_risk_rating] || ''}">${p.current_risk_rating || '-'}</td>
-                            <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.corrosion_group || '-'}</span></td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-
-    let methodsTable = `
-        <div class="w-1/2 pr-4 flex flex-col">
-            <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-blue-600 pl-2">Inspection Strategy</h3>
-            <table class="w-full border-collapse report-table text-sm mb-6 shadow-sm" width="100%">
-                <thead class="bg-gray-100 text-gray-800 font-bold uppercase text-xs">
-                    <tr>
-                        <th class="p-3 text-left border border-gray-300">Method</th>
-                        <th class="p-3 text-center border border-gray-300">Cvge</th>
-                        <th class="p-3 text-left border border-gray-300">Mechanism</th>
-                    </tr>
-                </thead>
-                <tbody class="text-gray-700">
-                    ${methods.map(m => `
-                        <tr>
-                            <td class="p-3 font-bold border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${m.method_name || '-'}</span></td>
-                            <td class="p-3 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${m.coverage || '-'}</span></td>
-                            <td class="p-3 border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${m.damage_mechanism || '-'}</span></td>
-                        </tr>
-                    `).join('')}
-                    ${methods.length === 0 ? '<tr><td colspan="3" class="p-3 text-center text-gray-400 italic">No specific methods</td></tr>' : ''}
-                </tbody>
-            </table>
-            
-            <div class="mt-auto flex-grow flex flex-col">
-                <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-gray-600 pl-2">Observations</h3>
-                <div id="notes-field" class="editable-notes text-sm bg-gray-50 rounded border border-gray-200 flex-grow min-h-[120px]" ${editableAttr} ${contentEditableAttr}>
-                    ${notesContent}
-                </div>
-            </div>
-        </div>
-    `;
-
-    let imageSection = `
-        <div class="w-1/2 pl-4 flex flex-col border-l-2 border-dashed border-gray-200 report-right-col">
-            <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-green-600 pl-2">Diagram</h3>
-            
-            <div class="img-container bg-white border border-gray-200 rounded p-4 mb-6 flex items-center justify-center shadow-sm" style="height: 250px;">
-                <img src="${insp.image_url || 'https://placehold.co/600x400/f3f4f6/9ca3af?text=No+Diagram'}" alt="Equipment Diagram" class="report-image object-contain max-h-[240px] w-auto">
-            </div>
-            
-            <div class="mt-auto flex-grow flex flex-col">
-                <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-yellow-500 pl-2">Recommendations</h3>
-                <div id="recs-field" class="editable-notes text-sm bg-gray-50 rounded border border-gray-200 flex-grow min-h-[120px]" ${editableAttr} ${contentEditableAttr}>
-                    ${recsContent}
-                </div>
-            </div>
-        </div>
-    `;
-
-    return `
-        ${header}
-        ${partsTable}
-        <div class="flex mt-6 report-split-container items-stretch">
-            ${methodsTable}
-            ${imageSection}
-        </div>
-    `;
-}
-
-
-            /**
-
-             * Get text content from editable elements for PPT export
-
-             */
-
-           function getEditedContent() {
-
-    const editedData = {};
-
-    document.querySelectorAll('[data-editable="true"]').forEach((el, index) => {
-
-        // Skip fields that are currently invalid
-
-        if (!el.classList.contains('editable-invalid')) {
-
-            editedData[`field_${index}`] = el.textContent || el.innerText;
-
-        } else {
-
-            // Use original value for invalid fields
-
-            editedData[`field_${index}`] = el.dataset.originalValue || el.textContent || el.innerText;
-
+        // Add these helper functions for validation
+        function addValidationListeners() {
+            // Add input validation for temperature and pressure fields
+            const tempPressureFields = document.querySelectorAll('[data-validation]');
+            tempPressureFields.forEach(field => {
+                field.addEventListener('input', validateNumericField);
+                field.addEventListener('blur', validateNumericRange);
+                field.addEventListener('focus', () => {
+                    // Store original value on focus
+                    if (!field.dataset.originalValue) {
+                        field.dataset.originalValue = field.textContent.trim();
+                    }
+                });
+                // Add input event for immediate risk rating update
+                field.addEventListener('input', function() {
+                    // Debounce the risk rating update
+                    clearTimeout(this.riskUpdateTimeout);
+                    this.riskUpdateTimeout = setTimeout(() => {
+                        updateRiskRatingForRow(this);
+                    }, 300);
+                });
+            });
         }
-
-    });
-
-    return editedData;
-
-}
-
-
-
-
-
-//automatic risk rating calculation 
-
-// Add this function after the existing validation functions
-
-function calculateRiskRating(temp, pressure) {
-
-    // Parse values (handle empty/dash)
-
-    const tempValue = temp === '-' || temp === '' ? 0 : parseFloat(temp);
-
-    const pressureValue = pressure === '-' || pressure === '' ? 0 : parseFloat(pressure);
-
-    
-
-    if (isNaN(tempValue) || isNaN(pressureValue)) {
-
-        return 'LOW'; // Default if invalid
-
-    }
-
-    
-
-    // Risk calculation logic (adjust thresholds as needed)
-
-    if (tempValue > 400 || pressureValue > 8) {
-
-        return 'HIGH';
-
-    } else if (tempValue > 200 || pressureValue > 5) {
-
-        return 'MEDIUM';
-
-    } else {
-
-        return 'LOW';
-
-    }
-
-}
-
-
-
-// Update the validateNumericRange function to also update risk rating
-
-function validateNumericRange(event) {
-
-    const field = event.target;
-
-    const value = parseFloat(field.textContent.trim());
-
-    
-
-    // Skip if value is not a number or is dash
-
-    if (isNaN(value) || field.textContent.trim() === '-') {
-
-        field.classList.remove('editable-invalid', 'editable-valid');
-
-        return;
-
-    }
-
-    
-
-    const min = parseFloat(field.dataset.min);
-
-    const max = parseFloat(field.dataset.max);
-
-    const validationType = field.dataset.validation;
-
-    
-
-    let isValid = true;
-
-    let message = '';
-
-    
-
-    if (validationType === 'temp') {
-
-        if (value < min || value > max) {
-
-            isValid = false;
-
-            message = `Temperature must be between ${min}°C and ${max}°C`;
-
-        }
-
-    } else if (validationType === 'pressure') {
-
-        if (value < min || value > max) {
-
-            isValid = false;
-
-            message = `Pressure must be between ${min} MPa and ${max} MPa`;
-
-        }
-
-    }
-
-    
-
-    if (!isValid) {
-
-        field.classList.add('editable-invalid');
-
-        field.classList.remove('editable-valid');
-
-        
-
-        // Show warning tooltip
-
-        Swal.fire({
-
-            ...CONFIG.SWAL_OPTIONS,
-
-            title: 'Invalid Value',
-
-            text: message,
-
-            icon: 'warning',
-
-            timer: 2000,
-
-            toast: true,
-
-            position: 'top-end',
-
-            showConfirmButton: false,
-
-            background: '#FEF3C7',
-
-            color: '#92400E'
-
-        });
-
-        
-
-        // Revert to original value
-
-        setTimeout(() => {
-
-            field.textContent = field.dataset.originalValue || '-';
-
-            field.classList.remove('editable-invalid', 'editable-valid');
-
-        }, 100);
-
-    } else {
-
-        field.classList.remove('editable-invalid');
-
-        field.classList.add('editable-valid');
-
-        
-
-        // Update risk rating when temperature or pressure changes
-
-        updateRiskRatingForRow(field);
-
-    }
-
-}
-
-
-
-// Add this function to update risk rating for a row
-
-async function exportToPPT(data) {
-    try {
-        if (typeof PptxGenJS === 'undefined') {
-            throw new Error("PowerPoint library not loaded. Please check internet connection.");
-        }
-
-        let pres = new PptxGenJS();
-        pres.defineLayout({ name: 'A4', width: 8.27, height: 11.69 });
-        pres.layout = 'A4';
-
-        let insp = data.inspection;
-        let parts = data.parts || [];
-        let methods = data.methods || [];
-
-        // --- GET NOTES & RECS ---
-        const notesEl = document.getElementById('notes-field');
-        const recsEl = document.getElementById('recs-field');
-        let inspectorNotes = notesEl ? notesEl.textContent.trim() : 'No specific observations recorded.';
-        let recommendations = recsEl ? recsEl.textContent.trim() : 'No recommendations provided.';
-
-        if (inspectorNotes.includes('Click "Enable Edit"')) inspectorNotes = "No specific observations recorded.";
-        if (recommendations.includes('Click "Enable Edit"')) recommendations = "No recommendations provided.";
-
-        // ===========================================
-        // SLIDE 1
-        // ===========================================
-        let slide1 = pres.addSlide();
-
-        // 1. Header
-        slide1.addText("INSPECTION PLAN (ON-STREAM)", {
-            x: 0.5, y: 0.2, w: 7.27, h: 0.4,
-            fontSize: 20, bold: true, align: 'center',
-            color: '1F2937', fill: { color: 'F3F4F6' }
-        });
-
-        // ---------------------------------------------------------
-        // GRID LAYOUT
-        // ---------------------------------------------------------
-        let headerRows = [
-            [
-                // Row 1
-                { text: "Description:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
-                { text: insp.equipment_desc || '-', options: { colspan: 3, fontSize: 9 } },
-                { text: "PLANT UNIT:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
-                { text: "iPETRO", options: { fontSize: 9 } }
-            ],
-            [
-                // Row 2 (MODIFIED: Removed Rev, extended PMT colspan to 3)
-                { text: "Tag No:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
-                { text: insp.equipment_no || '-', options: { fontSize: 9, bold: true } },
-                { text: "PMT No:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
-                { text: insp.pmt_no || '-', options: { colspan: 3, fontSize: 9 } } 
-            ],
-            [
-                // Row 3
-                { text: "Design Code:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
-                { text: insp.design_code || '-', options: { colspan: 2, fontSize: 9 } }, 
-                { text: "Insp. Date:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
-                { text: new Date().toLocaleDateString(), options: { colspan: 2, fontSize: 9 } }
-            ]
-        ];
-
-        slide1.addTable(headerRows, {
-            x: 0.5, y: 0.7, w: 7.27,
-            fontSize: 9, 
-            border: { pt: 1, color: '9CA3AF' },
-            // Columns: TagLbl, TagVal, PMTLbl, PMTVal, RevLbl, RevVal (grid reference)
-            colW: [1.1, 1.5, 0.8, 1.5, 0.8, 1.5], 
-            margin: 0.05
-        });
-
-        // 2. Component Analysis
-        slide1.addText("Component Analysis", {
-            x: 0.5, y: 1.8, w: 7.27, h: 0.3,
-            fontSize: 12, bold: true, color: '374151', fill: { color: 'F9FAFB' }
-        });
-
-        let partHeaders = [
-            [
-                { text: "FLUID", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
-                { text: "COMPONENT", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
-                { text: "CODE", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
-                { text: "MATERIAL", options: { colspan: 3, fill: 'D1D5DB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
-                { text: "INSUL", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
-                { text: "OP. PARAM", options: { colspan: 2, fill: 'D1D5DB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
-                { text: "RISK", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
-                { text: "C. GROUP", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } }
-            ],
-            [
-                { text: "TYPE", options: { fill: 'E5E7EB', bold: true, fontSize: 7, align: 'center' } },
-                { text: "SPEC", options: { fill: 'E5E7EB', bold: true, fontSize: 7, align: 'center' } },
-                { text: "GR", options: { fill: 'E5E7EB', bold: true, fontSize: 7, align: 'center' } },
-                { text: "T(°C)", options: { fill: 'E5E7EB', bold: true, fontSize: 7, align: 'center' } },
-                { text: "P(MPa)", options: { fill: 'E5E7EB', bold: true, fontSize: 7, align: 'center' } }
-            ]
-        ];
-
-        let partRows = parts.map(p => {
-            let riskColor = 'FFFFFF';
-            if (p.current_risk_rating === 'HIGH') riskColor = 'FECACA';
-            else if (p.current_risk_rating === 'MEDIUM') riskColor = 'FEF08A';
-            else if (p.current_risk_rating === 'LOW') riskColor = 'BBF7D0';
-            else if (p.current_risk_rating === 'MEDIUM HIGH') riskColor = 'FDBA74';
-
-            return [
-                { text: p.fluid || '-', options: { fontSize: 7, align: 'center' } },
-                { text: p.part_name || '-', options: { fontSize: 7, bold: true } },
-                { text: p.design_code || insp.design_code || '-', options: { fontSize: 7, align: 'center' } },
-                { text: p.type || '-', options: { fontSize: 7, align: 'center' } },
-                { text: p.spec || '-', options: { fontSize: 7, align: 'center' } },
-                { text: p.grade || '-', options: { fontSize: 7, align: 'center' } },
-                { text: p.insulation ? (p.insulation.toLowerCase().startsWith('y') ? 'Y' : 'N') : 'N', options: { fontSize: 7, align: 'center' } },
-                { text: p.operating_temp || p.design_temp || '-', options: { fontSize: 7, align: 'center' } },
-                { text: p.operating_pressure || p.design_pressure || '-', options: { fontSize: 7, align: 'center' } },
-                { text: p.current_risk_rating || '-', options: { fontSize: 7, bold: true, align: 'center', fill: riskColor } },
-                { text: p.corrosion_group || '-', options: { fontSize: 7, align: 'center' } }
-            ];
-        });
-
-        slide1.addTable([...partHeaders, ...partRows], {
-            x: 0.5, y: 2.1, w: 7.27,
-            border: { pt: 1, color: 'CCCCCC' }, margin: 0.02, fontSize: 7
-        });
-
-        const middleSectionY = 6.5;
-
-        // 3. Inspection Strategy
-        slide1.addText("Inspection Strategy", {
-            x: 0.5, y: middleSectionY, w: 3.5, h: 0.3,
-            fontSize: 12, bold: true, color: '374151'
-        });
-
-        if (methods.length > 0) {
-            let methodHeaders = [[
-                { text: "METHOD", options: { fill: 'E5E7EB', bold: true, fontSize: 8 } },
-                { text: "CVG", options: { fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center' } },
-                { text: "DAMAGE MECHANISM", options: { fill: 'E5E7EB', bold: true, fontSize: 8 } }
-            ]];
-            let methodRows = methods.map(m => [
-                { text: m.method_name || '-', options: { fontSize: 8, bold: true } },
-                { text: m.coverage || '-', options: { fontSize: 8, align: 'center' } },
-                { text: m.damage_mechanism || '-', options: { fontSize: 8 } }
-            ]);
-            slide1.addTable([...methodHeaders, ...methodRows], {
-                x: 0.5, y: middleSectionY + 0.4, w: 3.5,
-                border: { pt: 1, color: 'CCCCCC' }, margin: 0.05, fontSize: 8
+        function removeValidationListeners() {
+            const tempPressureFields = document.querySelectorAll('[data-validation]');
+            tempPressureFields.forEach(field => {
+                field.removeEventListener('input', validateNumericField);
+                field.removeEventListener('blur', validateNumericRange);
             });
         }
 
-        // 4. Equipment Diagram
-        slide1.addText("Equipment Diagram", {
-            x: 4.2, y: middleSectionY, w: 3.5, h: 0.3,
-            fontSize: 12, bold: true, color: '374151'
-        });
-
-        if (insp.image_url) {
-            try {
-                let imgPath = insp.image_url;
-                if(imgPath.startsWith('/')) {
-                    imgPath = window.location.origin + imgPath;
-                }
-                
-                slide1.addImage({
-                    path: imgPath,
-                    x: 4.2, y: middleSectionY + 0.4, w: 3.5, h: 2.2,
-                    sizing: { type: 'contain', w: 3.5, h: 2.2 }
-                });
-            } catch (e) { console.log('Image error ignored'); }
+        function validateNumericField(event) {
+            const field = event.target;
+            const value = field.textContent.trim();
+            
+            // Allow empty, dash, or numeric values
+            if (value === '' || value === '-' || /^-?\d*\.?\d*$/.test(value)) {
+                field.classList.remove('editable-invalid');
+                field.classList.add('editable-valid');
+            } else {
+                field.classList.remove('editable-valid');
+                field.classList.add('editable-invalid');
+            }
         }
 
-        // 5. Notes & Recommendations
-        const bottomY = 9.2;
+        // Add this function after the validateNumericField function
+        function calculateRiskRating(temp, pressure) {
+            const tempValue = temp === '-' || temp === '' ? 0 : parseFloat(temp);
+            const pressureValue = pressure === '-' || pressure === '' ? 0 : parseFloat(pressure);
+            
+            if (isNaN(tempValue) || isNaN(pressureValue)) {
+                return 'LOW'; // Default if invalid
+            }
+            
+            // Updated logic for 4 risk categories
+            if (tempValue > 400 || pressureValue > 8) {
+                return 'HIGH';
+            } else if (tempValue > 300 || pressureValue > 6) {
+                return 'MEDIUM HIGH';
+            } else if (tempValue > 200 || pressureValue > 5) {
+                return 'MEDIUM';
+            } else {
+                return 'LOW';
+            }
+        }
 
-        slide1.addText("Inspector Observations", {
-            x: 0.5, y: bottomY, w: 3.5, h: 0.3,
-            fontSize: 12, bold: true, color: '374151', fill: { color: 'F9FAFB' }
-        });
-        slide1.addText(inspectorNotes, {
-            x: 0.5, y: bottomY + 0.3, w: 3.5, h: 1.5,
-            fontSize: 9, color: '374151', fill: { color: 'FFFFFF' },
-            border: { pt: 1, color: 'D1D5DB' }, margin: 0.1, valign: 'top'
-        });
+        function updateRiskRatingForRow(field) {
+            const row = field.closest('tr');
+            if (!row) return;
+            
+            // Find temperature and pressure fields in the same row
+            const tempField = row.querySelector('[data-validation="temp"]');
+            const pressureField = row.querySelector('[data-validation="pressure"]');
+            const riskSelect = row.querySelector('.risk-dropdown');
+            
+            if (!tempField || !pressureField || !riskSelect) return;
+            
+            // Get current values
+            const temp = tempField.textContent.trim();
+            const pressure = pressureField.textContent.trim();
+            
+            // Calculate new risk rating based on temp/pressure
+            const newRiskRating = calculateRiskRating(temp, pressure);
+            
+            // Update the SELECT value
+            riskSelect.value = newRiskRating;
+            
+            // Update background color based on new value
+            updateRiskColor(riskSelect);
+            
+            // Trigger the update API logic similar to handleRiskChange
+            const inspectionId = currentReportData.inspection.inspection_id;
+            const partId = riskSelect.dataset.partId; // Ensure we put this data attr in HTML
+        }
 
-        slide1.addText("Recommendations", {
-            x: 4.2, y: bottomY, w: 3.5, h: 0.3,
-            fontSize: 12, bold: true, color: '374151', fill: { color: 'F9FAFB' }
-        });
-        slide1.addText(recommendations, {
-            x: 4.2, y: bottomY + 0.3, w: 3.5, h: 1.5,
-            fontSize: 9, color: '374151', fill: { color: 'FFFFFF' },
-            border: { pt: 1, color: 'D1D5DB' }, margin: 0.1, valign: 'top'
-        });
+        function updateRiskColor(selectElement) {
+            const riskColors = {
+                'LOW': 'bg-green-200',
+                'MEDIUM': 'bg-yellow-200',
+                'MEDIUM HIGH': 'bg-orange-200', 
+                'HIGH': 'bg-red-200'
+            };
+            
+            // Remove all color classes
+            selectElement.classList.remove('bg-green-200', 'bg-yellow-200', 'bg-red-200', 'bg-orange-200');
+            
+            // Add new color class
+            const colorClass = riskColors[selectElement.value];
+            if (colorClass) {
+                selectElement.classList.add(colorClass);
+            }
+        }
 
-        // Footer
-        slide1.addText(`Generated: ${new Date().toLocaleString()} | Inspector: ${insp.inspected_by || 'N/A'}`, {
-            x: 0.5, y: 11.2, w: 7.27, h: 0.3,
-            fontSize: 7, align: 'center', color: '9CA3AF', italic: true
-        });
+        async function handleRiskChange(selectElement) {
+            const newRisk = selectElement.value;
+            updateRiskColor(selectElement);
+            
+            const row = selectElement.closest('tr');
+            const partId = selectElement.dataset.partId;
+            const inspectionId = currentReportData.inspection.inspection_id;
+            const tempField = row.querySelector('[data-validation="temp"]');
+            const pressureField = row.querySelector('[data-validation="pressure"]');
+            
+            const temp = parseFloat(tempField.textContent.trim()) || 0;
+            const pressure = parseFloat(pressureField.textContent.trim()) || 0;
 
-        await pres.writeFile({ fileName: `Inspection_Plan_${insp.equipment_no}_${new Date().toISOString().split('T')[0]}.pptx` });
-
-        Swal.fire({
-            ...CONFIG.SWAL_OPTIONS,
-            title: 'Export Successful!',
-            text: 'Your PowerPoint has been downloaded.',
-            icon: 'success',
-            timer: 3000,
-            showConfirmButton: false,
-            toast: true,
-            position: 'top-end',
-            background: '#D1FAE5', color: '#166534'
-        });
-    } catch (error) {
-        console.error("PPT Export Error:", error);
-        Swal.fire({
-            ...CONFIG.SWAL_OPTIONS,
-            title: 'Export Failed',
-            text: error.message,
-            icon: 'error',
-            confirmButtonColor: '#DC2626'
-        });
-    }
-}
-
-            function triggerPPTExport() {
-
-                if (currentReportData) {
-
-                    exportToPPT(currentReportData);
-
+            try {
+                const res = await fetch('http://localhost:3000/api/update-risk-rating', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        inspectionId,
+                        partId,
+                        temperature: temp,
+                        pressure: pressure,
+                        riskRating: newRisk // Send the manual override
+                    }),
+                    credentials: 'include'
+                });
+                
+                const data = await res.json();
+                if(data.success) {
+                    console.log('Risk updated manually');
                 } else {
+                    Swal.fire('Error', 'Failed to update risk rating', 'error');
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
 
-                    Swal.fire({
+        function validateNumericRange(event) {
+            const field = event.target;
+            const value = parseFloat(field.textContent.trim());
+            
+            // Skip if value is not a number or is dash
+            if (isNaN(value) || field.textContent.trim() === '-') {
+                field.classList.remove('editable-invalid', 'editable-valid');
+                updateRiskRatingForRow(field); // Still update risk rating
+                return;
+            }
+            
+            const min = parseFloat(field.dataset.min);
+            const max = parseFloat(field.dataset.max);
+            const validationType = field.dataset.validation;
+            
+            let isValid = true;
+            let message = '';
+            
+            if (validationType === 'temp') {
+                if (value < min || value > max) {
+                    isValid = false;
+                    message = `Temperature must be between ${min}°C and ${max}°C`;
+                }
+            } else if (validationType === 'pressure') {
+                if (value < min || value > max) {
+                    isValid = false;
+                    message = `Pressure must be between ${min} MPa and ${max} MPa`;
+                }
+            }
+            
+            if (!isValid) {
+                field.classList.add('editable-invalid');
+                field.classList.remove('editable-valid');
+                
+                // Show warning tooltip
+                Swal.fire({
+                    ...CONFIG.SWAL_OPTIONS,
+                    title: 'Invalid Value',
+                    text: message,
+                    icon: 'warning',
+                    timer: 2000,
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    background: '#FEF3C7',
+                    color: '#92400E'
+                });
+                
+                // Revert to original value
+                setTimeout(() => {
+                    field.textContent = field.dataset.originalValue || '-';
+                    field.classList.remove('editable-invalid', 'editable-valid');
+                    updateRiskRatingForRow(field); // Update risk rating after revert
+                }, 100);
+            } else {
+                field.classList.remove('editable-invalid');
+                field.classList.add('editable-valid');
+                
+                // Update risk rating when temperature or pressure changes
+                updateRiskRatingForRow(field);
+            }
+        }
 
-                        ...CONFIG.SWAL_OPTIONS,
+        // ================================================
+        // AUTHENTICATION MODULE
+        // ================================================
+        const AuthModule = (function() {
+            let currentUser = null;
 
-                        title: 'No Data',
-
-                        text: 'Please generate a plan first.',
-
-                        icon: 'warning',
-
-                        confirmButtonColor: '#DC2626'
-
+            async function initAuth() {
+                try {
+                    const res = await fetch('/auth/me', {
+                        credentials: 'include'
                     });
+                    
+                    const data = await res.json();
+                    
+                    if (data.isAuthenticated && data.user) {
+                        currentUser = data.user;
+                        updateUserUI();
+                    } else {
+                        console.log('Not authenticated - server will handle redirect');
+                    }
+                } catch (error) {
+                    console.error('Auth check error:', error);
+                }
+            }
 
+            function updateUserUI() {
+                if (!currentUser) return;
+                
+                const userInitials = document.querySelector('.user-initials');
+                if (userInitials) {
+                    userInitials.textContent = currentUser.username.substring(0, 2).toUpperCase();
+                }
+                
+                const userNameElement = document.querySelector('.user-name');
+                if (userNameElement) {
+                    userNameElement.textContent = currentUser.username;
+                }
+                
+                // Control visibility of the "Enable Edit" button
+                const editBtn = document.getElementById('edit-toggle-btn');
+                if (editBtn) {
+                    if (currentUser.role === 'admin') {
+                        editBtn.style.display = 'flex'; // Show for admin
+                    } else {
+                        editBtn.style.display = 'none'; // Hide for everyone else
+                    }
                 }
 
+                // Show admin section for admin users
+                if (currentUser.role === 'admin') {
+                    const adminSection = document.getElementById('admin-section');
+                    const usersLink = document.getElementById('users-link');
+                    if (adminSection) adminSection.classList.remove('hidden');
+                    if (usersLink) usersLink.classList.remove('hidden');
+                    
+                    // Show delete buttons (if already rendered)
+                    const deleteButtons = document.querySelectorAll('.delete-btn');
+                    deleteButtons.forEach(btn => {
+                        btn.style.display = 'inline-flex';
+                    });
+                } else {
+                    const deleteButtons = document.querySelectorAll('button[onclick*="delete"], .delete-btn');
+                    deleteButtons.forEach(btn => {
+                        btn.style.display = 'none';
+                    });
+                }
+            }
+
+            async function logout() {
+                const result = await Swal.fire({
+                    ...CONFIG.SWAL_OPTIONS,
+                    title: 'Logout?',
+                    text: "Are you sure you want to end your session?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#DC2626',
+                    cancelButtonColor: '#475569',
+                    confirmButtonText: 'Yes, logout',
+                    cancelButtonText: 'Cancel'
+                });
+
+                if (!result.isConfirmed) return;
+                
+                try {
+                    const response = await fetch('/auth/logout', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        window.location.href = data.redirect || '/';
+                    } else {
+                        Swal.fire({
+                            ...CONFIG.SWAL_OPTIONS,
+                            title: 'Logout Failed',
+                            text: 'Please try again.',
+                            icon: 'error',
+                            confirmButtonColor: '#DC2626'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    Swal.fire({
+                        ...CONFIG.SWAL_OPTIONS,
+                        title: 'System Error',
+                        text: 'An error occurred during logout.',
+                        icon: 'error',
+                        confirmButtonColor: '#4B5563'
+                    });
+                }
+            }
+
+            function getCurrentUser() {
+                return currentUser;
+            }
+
+            return {
+                init: initAuth,
+                logout: logout,
+                getCurrentUser: getCurrentUser
+            };
+        })();
+
+        window.logout = AuthModule.logout;
+
+        // ================================================
+        // SIDEBAR MODULE
+        // ================================================
+        const SidebarModule = (function() {
+            function init() {
+                const sidebar = document.getElementById('sidebar');
+                const toggleBtn = document.getElementById('toggle-sidebar-btn');
+                const mobileOverlay = document.getElementById('mobile-overlay');
+                
+                document.querySelectorAll('.sidebar-link[data-page="inspectionplan"]').forEach(link => {
+                    link.classList.add('active');
+                });
+                
+                function toggleSidebar() {
+                    if (window.innerWidth <= 768) { 
+                        sidebar.classList.toggle('mobile-open'); 
+                        mobileOverlay.classList.toggle('active'); 
+                    } else { 
+                        sidebar.classList.toggle('collapsed'); 
+                        document.body.classList.toggle('sidebar-collapsed'); 
+                        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed')); 
+                    }
+                }
+                
+                toggleBtn.addEventListener('click', toggleSidebar);
+                mobileOverlay.addEventListener('click', toggleSidebar);
+                
+                if (window.innerWidth > 768 && localStorage.getItem('sidebarCollapsed') === 'true') { 
+                    sidebar.classList.add('collapsed'); 
+                    document.body.classList.add('sidebar-collapsed'); 
+                }
+            }
+
+            return {
+                init: init
+            };
+        })();
+
+        // ================================================
+        // MODAL MODULE
+        // ================================================
+        const ModalModule = (function() {
+            const modal = document.getElementById('modal');
+
+            function openModal() {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                document.body.classList.add('modal-active');
+                setTimeout(() => modal.classList.add('modal-active'), 10);
+            }
+
+            function closeModal() {
+                // Disable edit mode when closing
+                if (isEditMode) {
+                    toggleEditMode();
+                }
+                
+                modal.classList.remove('modal-active');
+                setTimeout(() => {
+                    modal.classList.add('opacity-0', 'pointer-events-none');
+                    document.body.classList.remove('modal-active');
+                }, 200);
+            }
+
+            return {
+                open: openModal,
+                close: closeModal
+            };
+        })();
+
+        window.openModal = ModalModule.open;
+        window.closeModal = ModalModule.close;
+
+        // ================================================
+        // INSPECTION PLAN MODULE
+        // ================================================
+        const InspectionPlanModule = (function() {
+            const modalTitle = document.getElementById('modal-title');
+            const modalContent = document.getElementById('modal-content');
+            let currentReportData = null;
+            let allHistoryData = [];
+            let currentSort = { column: 'inspected_at', direction: 'desc' };
+            let searchTerm = '';
+
+            async function loadHistory() {
+                try {
+                    const res = await fetch('http://localhost:3000/api/inspection-history', {
+                        credentials: 'include'
+                    });
+                    const result = await res.json();
+                    
+                    if (result.data) {
+                        allHistoryData = result.data;
+                        
+                        // Sort by date descending initially for "Recent" logic
+                        allHistoryData.sort((a, b) => new Date(b.inspected_at) - new Date(a.inspected_at));
+                        
+                        // Show most recent inspection
+                        if (allHistoryData.length > 0) {
+                            renderRecentInspection(allHistoryData[0]);
+                        } else {
+                            document.getElementById('recent-inspection-card').style.display = 'none';
+                        }
+
+                        renderList();
+                    }
+                } catch (err) {
+                    console.error(err);
+                    const tbody = document.getElementById('history-list');
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-red-500">Error loading history.</td></tr>';
+                }
+            }
+
+            function renderRecentInspection(item) {
+                const card = document.getElementById('recent-inspection-card');
+                card.style.display = 'grid'; // Re-enable display
+                
+                document.getElementById('recent-equip-no').textContent = item.equipment_no || 'N/A';
+                document.getElementById('recent-desc').textContent = item.equipment_desc || 'No description available';
+                document.getElementById('recent-date').textContent = new Date(item.inspected_at).toLocaleDateString();
+                document.getElementById('recent-inspector').textContent = item.inspected_by || 'Unknown';
+                
+                // Wire up the button
+                const btn = document.getElementById('recent-action-btn');
+                btn.onclick = () => generatePlan(item.inspection_id);
+            }
+
+            function handleSearch(val) {
+                searchTerm = val.toLowerCase();
+                renderList();
+            }
+
+            function handleSort(column) {
+                // Toggle direction
+                if (currentSort.column === column) {
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.column = column;
+                    currentSort.direction = 'asc';
+                }
+                
+                updateSortIcons();
+                renderList();
+            }
+
+            function updateSortIcons() {
+                document.querySelectorAll('th.sortable').forEach(th => {
+                    th.classList.remove('sorted-asc', 'sorted-desc');
+                    const icon = th.querySelector('.sort-icon');
+                    if(icon) icon.style.opacity = '0.3';
+                });
+
+                const targetTh = document.querySelector(`.sort-icon[data-col="${currentSort.column}"]`);
+                if (targetTh) {
+                    const th = targetTh.closest('th');
+                    th.classList.add(currentSort.direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                    targetTh.style.opacity = '1';
+                }
+            }
+
+            function renderList() {
+                const tbody = document.getElementById('history-list');
+                const countDiv = document.getElementById('record-count');
+                
+                // 1. Filter
+                let filteredData = allHistoryData.filter(item => {
+                    const searchStr = `${item.equipment_no} ${item.equipment_desc} ${item.inspected_by} ${item.inspection_id}`.toLowerCase();
+                    return searchStr.includes(searchTerm);
+                });
+
+                // 2. Sort
+                filteredData.sort((a, b) => {
+                    let valA = a[currentSort.column] || '';
+                    let valB = b[currentSort.column] || '';
+
+                    if (currentSort.column === 'inspected_at') {
+                        valA = new Date(valA).getTime();
+                        valB = new Date(valB).getTime();
+                    } else if (currentSort.column === 'inspection_id' || currentSort.column === 'part_count') {
+                        valA = parseInt(valA);
+                        valB = parseInt(valB);
+                    } else {
+                        valA = String(valA).toLowerCase();
+                        valB = String(valB).toLowerCase();
+                    }
+
+                    if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+                    if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                countDiv.innerText = `${filteredData.length} records found`;
+
+                if (filteredData.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No inspection records found.</td></tr>';
+                    return;
+                }
+                
+                // Check current user role for initial render
+                const currentUser = AuthModule.getCurrentUser();
+                const isAdmin = currentUser && currentUser.role === 'admin';
+                const deleteDisplayStyle = isAdmin ? 'inline-flex' : 'none';
+
+                tbody.innerHTML = filteredData.map(insp => `
+                    <tr class="hover:bg-gray-50 transition-colors group">
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">#${insp.inspection_id}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">${new Date(insp.inspected_at).toLocaleString()}</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">
+                            <div class="font-bold text-gray-900">${insp.equipment_no}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">${insp.equipment_desc}</div>
+                        </td>
+                            <td class="px-6 py-4 text-sm text-gray-600 flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600">
+                            ${(insp.inspected_by || 'NA').substring(0, 2).toUpperCase()}
+                        </div>
+                        
+                        ${insp.inspected_by || '<span class="text-gray-400 italic">Unassigned</span>'}
+                    </td>
+                        <td class="px-6 py-4 text-sm text-gray-500 text-center">
+                            <span class="bg-blue-50 text-blue-600 py-1 px-3 rounded-full text-xs font-bold border border-blue-100">${insp.part_count}</span>
+                        </td>
+                        <td class="px-6 py-4 text-right text-sm font-medium">
+                            <button onclick="generatePlan(${insp.inspection_id})" class="btn btn-success text-xs">
+                                Generate Plan
+                            </button>
+                            <button onclick="deletePlan(${insp.inspection_id})" class="btn btn-danger text-xs ml-2 delete-btn" style="display: ${deleteDisplayStyle};">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            async function deletePlan(inspectionId) {
+                const result = await Swal.fire({
+                    ...CONFIG.SWAL_OPTIONS,
+                    title: 'Delete Inspection?',
+                    text: `Are you sure you want to delete inspection record #${inspectionId}? This action cannot be undone.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#EF4444',
+                    cancelButtonColor: '#6B7280',
+                    confirmButtonText: 'Yes, delete it',
+                    cancelButtonText: 'Cancel'
+                });
+
+                if (!result.isConfirmed) return;
+
+                try {
+                    const response = await fetch(`http://localhost:3000/api/inspection/${inspectionId}`, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        Swal.fire({
+                            ...CONFIG.SWAL_OPTIONS,
+                            title: 'Deleted!',
+                            text: 'The inspection record has been deleted.',
+                            icon: 'success',
+                            confirmButtonColor: '#10B981'
+                        });
+                        // Reload the list
+                        loadHistory();
+                    } else {
+                        Swal.fire({
+                            ...CONFIG.SWAL_OPTIONS,
+                            title: 'Error',
+                            text: data.message || 'Failed to delete record.',
+                            icon: 'error',
+                            confirmButtonColor: '#EF4444'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Delete error:', error);
+                    Swal.fire({
+                        ...CONFIG.SWAL_OPTIONS,
+                        title: 'Server Error',
+                        text: 'Could not connect to the server.',
+                        icon: 'error',
+                        confirmButtonColor: '#EF4444'
+                    });
+                }
+            }
+
+            async function generatePlan(inspectionId) {
+                modalTitle.innerText = `Inspection Plan for #${inspectionId}`;
+                modalContent.innerHTML = '<div class="flex flex-col items-center justify-center py-12"><div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div><p class="text-gray-500">Generating Report...</p></div>';
+                ModalModule.open();
+                
+                try {
+                    const res = await fetch(`http://localhost:3000/api/inspection-plan/${inspectionId}`, {
+                        credentials: 'include'
+                    });
+                    const result = await res.json();
+                    
+                    if (result.success) {
+                        currentReportData = result.data;
+                        const currentUser = AuthModule.getCurrentUser();
+                        const isAdmin = currentUser && currentUser.role === 'admin';
+                        
+                        // Generate the report HTML with the correct pressure range (0-10 MPa)
+                        modalContent.innerHTML = createReportHTML(result.data, isAdmin);
+                        
+                        const editButton = document.getElementById('edit-toggle-btn');
+                        
+                        if (currentUser && currentUser.role === 'admin') {
+                            editButton.style.display = 'inline-flex';
+                            editButton.disabled = false;
+                            editButton.querySelector('#edit-btn-text').textContent = 'Enable Edit';
+                            
+                            // Initialize dropdowns immediately
+                            setTimeout(() => {
+                                const rows = modalContent.querySelectorAll('tbody tr');
+                                rows.forEach(row => {
+                                    const riskSelect = row.querySelector('.risk-dropdown');
+                                    if (riskSelect) {
+                                        updateRiskColor(riskSelect); // Set initial color
+                                    }
+                                });
+                                
+                                if (isEditMode) {
+                                    addValidationListeners();
+                                }
+                            }, 100);
+                        } else {
+                            editButton.style.display = 'none';
+                            if (isEditMode) {
+                                isEditMode = false;
+                                const indicator = document.getElementById('edit-mode-indicator');
+                                indicator.classList.remove('active');
+                            }
+                        }
+                    } else {
+                        modalContent.innerHTML = '<p class="text-red-500 text-center py-10">Could not load report data.</p>';
+                    }
+                } catch(e) {
+                    console.error('Error loading inspection plan:', e);
+                    modalContent.innerHTML = `<div class="text-center py-10">
+                        <div class="text-red-500 text-lg font-bold mb-2">Error Loading Report</div>
+                        <p class="text-gray-600">${e.message || 'Please try again later.'}</p>
+                    </div>`;
+                }
+            }
+
+
+            // Replace createReportHTML with this version
+            function createReportHTML(data, isAdmin = false) {
+                const insp = data.inspection;
+                const parts = data.parts;
+                const methods = data.methods || [];
+                
+                // Risk Colors (for reference)
+                const riskColors = {
+                    'LOW': 'bg-green-200',
+                    'MEDIUM': 'bg-yellow-200',
+                    'HIGH': 'bg-red-200',
+                    'MEDIUM HIGH': 'bg-orange-200'
+                };
+
+                // Attributes
+                const editableAttr = isAdmin ? 'data-editable="true"' : '';
+                const contentEditableAttr = isAdmin ? 'contenteditable="false"' : '';
+                const tempValidation = isAdmin ? 'data-validation="temp" data-min="-50" data-max="500"' : '';
+                const pressureValidation = isAdmin ? 'data-validation="pressure" data-min="0" data-max="10"' : '';
+
+                // Defaults
+                const defaultNotes = '<span class="text-gray-400 italic placeholder-text">No specific observations recorded.</span>';
+                const defaultRecs = '<span class="text-gray-400 italic placeholder-text">No recommendations provided.</span>';
+
+                const notesContent = (insp.notes && insp.notes.trim() !== "") ? insp.notes : defaultNotes;
+                const recsContent = (insp.recommendations && insp.recommendations.trim() !== "") ? insp.recommendations : defaultRecs;
+
+                // 1. Header (MODIFIED: Removed Rev, extended PMT colspan)
+                let header = `
+                    <div class="mb-6 border-b-2 border-gray-800 pb-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="w-1/4"></div>
+                            <div class="w-2/4 text-center">
+                                <h1 class="text-3xl font-bold text-gray-900">INSPECTION PLAN</h1>
+                                <p class="text-sm text-gray-500 uppercase font-bold">On-Stream Inspection Record</p>
+                            </div>
+                            <div class="w-1/4 text-right text-xs text-gray-400">ID: #${insp.inspection_id}</div>
+                        </div>
+
+                        <table class="w-full border-collapse report-header-table text-sm" width="100%">
+                            <tr>
+                                <td class="p-3 font-bold bg-gray-50 w-1/6 border-r border-gray-200">Description</td>
+                                <td class="p-3 font-medium text-gray-900" colspan="3"><span ${editableAttr} ${contentEditableAttr}>${insp.equipment_desc || '-'}</span></td>
+                                <td class="p-3 font-bold bg-gray-50 w-1/6 border-r border-gray-200">Unit</td>
+                                <td class="p-3 font-medium text-gray-900" colspan="2">iPETRO</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-bold bg-gray-50 border-r border-gray-200">Tag No.</td>
+                                <td class="p-3 font-mono font-bold text-lg text-gray-900"><span ${editableAttr} ${contentEditableAttr}>${insp.equipment_no || '-'}</span></td>
+                                <td class="p-3 font-bold bg-gray-50 w-1/6 border-r border-gray-200">PMT No.</td>
+                                <td class="p-3 font-medium text-gray-900" colspan="3"><span ${editableAttr} ${contentEditableAttr}>${insp.pmt_no || '-'}</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                `;
+
+                // 2. Parts Table
+                let partsTable = `
+                    <div class="mb-8">
+                        <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-red-600 pl-2">Component Analysis</h3>
+                        <table class="w-full border-collapse report-table mb-4 text-sm" width="100%">
+                            <thead class="bg-gray-100 text-gray-800 font-bold uppercase text-xs">
+                                <tr>
+                                    <th class="p-3 border border-gray-300" rowspan="2">Fluid</th>
+                                    <th class="p-3 border border-gray-300" rowspan="2">Component</th>
+                                    <th class="p-3 border border-gray-300" rowspan="2">Code</th>
+                                    <th class="p-3 border border-gray-300" colspan="3">Material</th>
+                                    <th class="p-3 border border-gray-300" rowspan="2">Insul.</th>
+                                    <th class="p-3 border border-gray-300" colspan="2">Op. Param</th>
+                                    <th class="p-3 border border-gray-300" rowspan="2">Risk</th>
+                                    <th class="p-3 border border-gray-300" rowspan="2">C. Group</th>
+                                </tr>
+                                <tr>
+                                    <th class="p-2 border border-gray-300 bg-gray-50">Type</th>
+                                    <th class="p-2 border border-gray-300 bg-gray-50">Spec</th>
+                                    <th class="p-2 border border-gray-300 bg-gray-50">Gr</th>
+                                    <th class="p-2 border border-gray-300 bg-gray-50">T(°C)</th>
+                                    <th class="p-2 border border-gray-300 bg-gray-50">P(MPa)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                ${parts.map(p => {
+                                    const currentRisk = p.current_risk_rating || 'LOW';
+                                    return `
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.fluid || '-'}</span></td>
+                                        <td class="p-4 font-bold border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.part_name || '-'}</span></td>
+                                        <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.design_code || insp.design_code || '-'}</span></td>
+                                        <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.type || '-'}</span></td>
+                                        <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.spec || '-'}</span></td>
+                                        <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.grade || '-'}</span></td>
+                                        <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.insulation ? (p.insulation.toLowerCase().startsWith('y') ? 'Y' : 'N') : 'N'}</span></td>
+                                        <td class="p-4 text-right font-mono border border-gray-200"><span ${editableAttr} ${contentEditableAttr} ${tempValidation}>${p.operating_temp || p.design_temp || '-'}</span></td>
+                                        <td class="p-4 text-right font-mono border border-gray-200"><span ${editableAttr} ${contentEditableAttr} ${pressureValidation}>${p.operating_pressure || p.design_pressure || '-'}</span></td>
+                                        <td class="p-4 text-center border border-black p-0">
+                                            ${isAdmin ? `
+                                                <select class="risk-dropdown" disabled data-part-id="${p.part_id}" onchange="handleRiskChange(this)">
+                                                    <option value="LOW" ${currentRisk === 'LOW' ? 'selected' : ''}>LOW</option>
+                                                    <option value="MEDIUM" ${currentRisk === 'MEDIUM' ? 'selected' : ''}>MEDIUM</option>
+                                                    <option value="MEDIUM HIGH" ${currentRisk === 'MEDIUM HIGH' ? 'selected' : ''}>MEDIUM HIGH</option>
+                                                    <option value="HIGH" ${currentRisk === 'HIGH' ? 'selected' : ''}>HIGH</option>
+                                                </select>
+                                            ` : `
+                                                <span class="font-bold ${riskColors[currentRisk] || ''} block w-full h-full p-2">${currentRisk}</span>
+                                            `}
+                                        </td>
+                                        <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.corrosion_group || '-'}</span></td>
+                                    </tr>
+                                `}).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                let methodsTable = `
+                    <div class="w-1/2 pr-4 flex flex-col">
+                        <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-blue-600 pl-2">Inspection Strategy</h3>
+                        <table class="w-full border-collapse report-table text-sm mb-6 shadow-sm" width="100%">
+                            <thead class="bg-gray-100 text-gray-800 font-bold uppercase text-xs">
+                                <tr>
+                                    <th class="p-3 text-left border border-gray-300">Method</th>
+                                    <th class="p-3 text-center border border-gray-300">Cvge</th>
+                                    <th class="p-3 text-left border border-gray-300">Mechanism</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                ${methods.map(m => `
+                                    <tr>
+                                        <td class="p-3 font-bold border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${m.method_name || '-'}</span></td>
+                                        <td class="p-3 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${m.coverage || '-'}</span></td>
+                                        <td class="p-3 border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${m.damage_mechanism || '-'}</span></td>
+                                    </tr>
+                                `).join('')}
+                                ${methods.length === 0 ? '<tr><td colspan="3" class="p-3 text-center text-gray-400 italic">No specific methods</td></tr>' : ''}
+                            </tbody>
+                        </table>
+                        
+                        <div class="mt-auto flex-grow flex flex-col">
+                            <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-gray-600 pl-2">Observations</h3>
+                            <div id="notes-field" class="editable-notes text-sm bg-gray-50 rounded border border-gray-200 flex-grow min-h-[120px]" ${editableAttr} ${contentEditableAttr}>
+                                ${notesContent}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                let imageSection = `
+                    <div class="w-1/2 pl-4 flex flex-col border-l-2 border-dashed border-gray-200 report-right-col">
+                        <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-green-600 pl-2">Diagram</h3>
+                        
+                        <div class="img-container bg-white border border-gray-200 rounded p-4 mb-6 flex items-center justify-center shadow-sm" style="height: 250px;">
+                            <img src="${insp.image_url || 'https://placehold.co/600x400/f3f4f6/9ca3af?text=No+Diagram'}" alt="Equipment Diagram" class="report-image object-contain max-h-[240px] w-auto">
+                        </div>
+                        
+                        <div class="mt-auto flex-grow flex flex-col">
+                            <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-yellow-500 pl-2">Recommendations</h3>
+                            <div id="recs-field" class="editable-notes text-sm bg-gray-50 rounded border border-gray-200 flex-grow min-h-[120px]" ${editableAttr} ${contentEditableAttr}>
+                                ${recsContent}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                return `
+                    ${header}
+                    ${partsTable}
+                    <div class="flex mt-6 report-split-container items-stretch">
+                        ${methodsTable}
+                        ${imageSection}
+                    </div>
+                `;
+            }
+
+
+            /**
+             * Get text content from editable elements for PPT export
+             */
+            function getEditedContent() {
+                const editedData = {};
+                document.querySelectorAll('[data-editable="true"]').forEach((el, index) => {
+                    // Skip fields that are currently invalid
+                    if (!el.classList.contains('editable-invalid')) {
+                        editedData[`field_${index}`] = el.textContent || el.innerText;
+                    } else {
+                        // Use original value for invalid fields
+                        editedData[`field_${index}`] = el.dataset.originalValue || el.textContent || el.innerText;
+                    }
+                });
+                return editedData;
+            }
+
+
+            async function exportToPPT(data) {
+                try {
+                    if (typeof PptxGenJS === 'undefined') {
+                        throw new Error("PowerPoint library not loaded. Please check internet connection.");
+                    }
+
+                    let pres = new PptxGenJS();
+                    pres.defineLayout({ name: 'A4', width: 8.27, height: 11.69 });
+                    pres.layout = 'A4';
+
+                    let insp = data.inspection;
+                    let parts = data.parts || [];
+                    let methods = data.methods || [];
+
+                    // --- GET NOTES & RECS ---
+                    const notesEl = document.getElementById('notes-field');
+                    const recsEl = document.getElementById('recs-field');
+                    let inspectorNotes = notesEl ? notesEl.textContent.trim() : 'No specific observations recorded.';
+                    let recommendations = recsEl ? recsEl.textContent.trim() : 'No recommendations provided.';
+
+                    if (inspectorNotes.includes('Click "Enable Edit"')) inspectorNotes = "No specific observations recorded.";
+                    if (recommendations.includes('Click "Enable Edit"')) recommendations = "No recommendations provided.";
+
+                    // ===========================================
+                    // SLIDE 1
+                    // ===========================================
+                    let slide1 = pres.addSlide();
+
+                    // 1. Header
+                    slide1.addText("INSPECTION PLAN (ON-STREAM)", {
+                        x: 0.5, y: 0.2, w: 7.27, h: 0.4,
+                        fontSize: 20, bold: true, align: 'center',
+                        color: '1F2937', fill: { color: 'F3F4F6' }
+                    });
+
+                    // ---------------------------------------------------------
+                    // GRID LAYOUT
+                    // ---------------------------------------------------------
+                    let headerRows = [
+                        [
+                            // Row 1
+                            { text: "Description:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
+                            { text: insp.equipment_desc || '-', options: { colspan: 3, fontSize: 9 } },
+                            { text: "PLANT UNIT:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
+                            { text: "iPETRO", options: { fontSize: 9 } }
+                        ],
+                        [
+                            // Row 2 (MODIFIED: Removed Rev, extended PMT colspan to 3)
+                            { text: "Tag No:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
+                            { text: insp.equipment_no || '-', options: { fontSize: 9, bold: true } },
+                            { text: "PMT No:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
+                            { text: insp.pmt_no || '-', options: { colspan: 3, fontSize: 9 } } 
+                        ],
+                        [
+                            // Row 3
+                            { text: "Design Code:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
+                            { text: insp.design_code || '-', options: { colspan: 2, fontSize: 9 } }, 
+                            { text: "Insp. Date:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
+                            { text: new Date().toLocaleDateString(), options: { colspan: 2, fontSize: 9 } }
+                        ]
+                    ];
+
+                    slide1.addTable(headerRows, {
+                        x: 0.5, y: 0.7, w: 7.27,
+                        fontSize: 9, 
+                        border: { pt: 1, color: '9CA3AF' },
+                        // Columns: TagLbl, TagVal, PMTLbl, PMTVal, RevLbl, RevVal (grid reference)
+                        colW: [1.1, 1.5, 0.8, 1.5, 0.8, 1.5], 
+                        margin: 0.05
+                    });
+
+                    // 2. Component Analysis
+                    slide1.addText("Component Analysis", {
+                        x: 0.5, y: 1.8, w: 7.27, h: 0.3,
+                        fontSize: 12, bold: true, color: '374151', fill: { color: 'F9FAFB' }
+                    });
+
+                    let partHeaders = [
+                        [
+                            { text: "FLUID", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
+                            { text: "COMPONENT", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
+                            { text: "CODE", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
+                            { text: "MATERIAL", options: { colspan: 3, fill: 'D1D5DB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
+                            { text: "INSUL", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
+                            { text: "OP. PARAM", options: { colspan: 2, fill: 'D1D5DB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
+                            { text: "RISK", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
+                            { text: "C. GROUP", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } }
+                        ],
+                        [
+                            { text: "TYPE", options: { fill: 'E5E7EB', bold: true, fontSize: 7, align: 'center' } },
+                            { text: "SPEC", options: { fill: 'E5E7EB', bold: true, fontSize: 7, align: 'center' } },
+                            { text: "GR", options: { fill: 'E5E7EB', bold: true, fontSize: 7, align: 'center' } },
+                            { text: "T(°C)", options: { fill: 'E5E7EB', bold: true, fontSize: 7, align: 'center' } },
+                            { text: "P(MPa)", options: { fill: 'E5E7EB', bold: true, fontSize: 7, align: 'center' } }
+                        ]
+                    ];
+
+                    let partRows = parts.map(p => {
+                        let riskColor = 'FFFFFF';
+                        if (p.current_risk_rating === 'HIGH') riskColor = 'FECACA';
+                        else if (p.current_risk_rating === 'MEDIUM') riskColor = 'FEF08A';
+                        else if (p.current_risk_rating === 'LOW') riskColor = 'BBF7D0';
+                        else if (p.current_risk_rating === 'MEDIUM HIGH') riskColor = 'FDBA74';
+
+                        return [
+                            { text: p.fluid || '-', options: { fontSize: 7, align: 'center' } },
+                            { text: p.part_name || '-', options: { fontSize: 7, bold: true } },
+                            { text: p.design_code || insp.design_code || '-', options: { fontSize: 7, align: 'center' } },
+                            { text: p.type || '-', options: { fontSize: 7, align: 'center' } },
+                            { text: p.spec || '-', options: { fontSize: 7, align: 'center' } },
+                            { text: p.grade || '-', options: { fontSize: 7, align: 'center' } },
+                            { text: p.insulation ? (p.insulation.toLowerCase().startsWith('y') ? 'Y' : 'N') : 'N', options: { fontSize: 7, align: 'center' } },
+                            { text: p.operating_temp || p.design_temp || '-', options: { fontSize: 7, align: 'center' } },
+                            { text: p.operating_pressure || p.design_pressure || '-', options: { fontSize: 7, align: 'center' } },
+                            { text: p.current_risk_rating || '-', options: { fontSize: 7, bold: true, align: 'center', fill: riskColor } },
+                            { text: p.corrosion_group || '-', options: { fontSize: 7, align: 'center' } }
+                        ];
+                    });
+
+                    slide1.addTable([...partHeaders, ...partRows], {
+                        x: 0.5, y: 2.1, w: 7.27,
+                        border: { pt: 1, color: 'CCCCCC' }, margin: 0.02, fontSize: 7
+                    });
+
+                    const middleSectionY = 6.5;
+
+                    // 3. Inspection Strategy
+                    slide1.addText("Inspection Strategy", {
+                        x: 0.5, y: middleSectionY, w: 3.5, h: 0.3,
+                        fontSize: 12, bold: true, color: '374151'
+                    });
+
+                    if (methods.length > 0) {
+                        let methodHeaders = [[
+                            { text: "METHOD", options: { fill: 'E5E7EB', bold: true, fontSize: 8 } },
+                            { text: "CVG", options: { fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center' } },
+                            { text: "DAMAGE MECHANISM", options: { fill: 'E5E7EB', bold: true, fontSize: 8 } }
+                        ]];
+                        let methodRows = methods.map(m => [
+                            { text: m.method_name || '-', options: { fontSize: 8, bold: true } },
+                            { text: m.coverage || '-', options: { fontSize: 8, align: 'center' } },
+                            { text: m.damage_mechanism || '-', options: { fontSize: 8 } }
+                        ]);
+                        slide1.addTable([...methodHeaders, ...methodRows], {
+                            x: 0.5, y: middleSectionY + 0.4, w: 3.5,
+                            border: { pt: 1, color: 'CCCCCC' }, margin: 0.05, fontSize: 8
+                        });
+                    }
+
+                    // 4. Equipment Diagram
+                    slide1.addText("Equipment Diagram", {
+                        x: 4.2, y: middleSectionY, w: 3.5, h: 0.3,
+                        fontSize: 12, bold: true, color: '374151'
+                    });
+
+                    if (insp.image_url) {
+                        try {
+                            let imgPath = insp.image_url;
+                            if(imgPath.startsWith('/')) {
+                                imgPath = window.location.origin + imgPath;
+                            }
+                            
+                            slide1.addImage({
+                                path: imgPath,
+                                x: 4.2, y: middleSectionY + 0.4, w: 3.5, h: 2.2,
+                                sizing: { type: 'contain', w: 3.5, h: 2.2 }
+                            });
+                        } catch (e) { console.log('Image error ignored'); }
+                    }
+
+                    // 5. Notes & Recommendations
+                    const bottomY = 9.2;
+
+                    slide1.addText("Inspector Observations", {
+                        x: 0.5, y: bottomY, w: 3.5, h: 0.3,
+                        fontSize: 12, bold: true, color: '374151', fill: { color: 'F9FAFB' }
+                    });
+                    slide1.addText(inspectorNotes, {
+                        x: 0.5, y: bottomY + 0.3, w: 3.5, h: 1.5,
+                        fontSize: 9, color: '374151', fill: { color: 'FFFFFF' },
+                        border: { pt: 1, color: 'D1D5DB' }, margin: 0.1, valign: 'top'
+                    });
+
+                    slide1.addText("Recommendations", {
+                        x: 4.2, y: bottomY, w: 3.5, h: 0.3,
+                        fontSize: 12, bold: true, color: '374151', fill: { color: 'F9FAFB' }
+                    });
+                    slide1.addText(recommendations, {
+                        x: 4.2, y: bottomY + 0.3, w: 3.5, h: 1.5,
+                        fontSize: 9, color: '374151', fill: { color: 'FFFFFF' },
+                        border: { pt: 1, color: 'D1D5DB' }, margin: 0.1, valign: 'top'
+                    });
+
+                    // Footer
+                    slide1.addText(`Generated: ${new Date().toLocaleString()} | Inspector: ${insp.inspected_by || 'N/A'}`, {
+                        x: 0.5, y: 11.2, w: 7.27, h: 0.3,
+                        fontSize: 7, align: 'center', color: '9CA3AF', italic: true
+                    });
+
+                    await pres.writeFile({ fileName: `Inspection_Plan_${insp.equipment_no}_${new Date().toISOString().split('T')[0]}.pptx` });
+
+                    Swal.fire({
+                        ...CONFIG.SWAL_OPTIONS,
+                        title: 'Export Successful!',
+                        text: 'Your PowerPoint has been downloaded.',
+                        icon: 'success',
+                        timer: 3000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#D1FAE5', color: '#166534'
+                    });
+                } catch (error) {
+                    console.error("PPT Export Error:", error);
+                    Swal.fire({
+                        ...CONFIG.SWAL_OPTIONS,
+                        title: 'Export Failed',
+                        text: error.message,
+                        icon: 'error',
+                        confirmButtonColor: '#DC2626'
+                    });
+                }
+            }
+
+            function triggerPPTExport() {
+                if (currentReportData) {
+                    exportToPPT(currentReportData);
+                } else {
+                    Swal.fire({
+                        ...CONFIG.SWAL_OPTIONS,
+                        title: 'No Data',
+                        text: 'Please generate a plan first.',
+                        icon: 'warning',
+                        confirmButtonColor: '#DC2626'
+                    });
+                }
+            }
+
+            // ADDED: Excel Export Functions
+            function triggerExcelExport() {
+                if (currentReportData) {
+                    exportToExcel(currentReportData);
+                } else {
+                    Swal.fire({
+                        ...CONFIG.SWAL_OPTIONS,
+                        title: 'No Data',
+                        text: 'Please generate a plan first.',
+                        icon: 'warning',
+                        confirmButtonColor: '#DC2626'
+                    });
+                }
+            }
+
+            function exportToExcel(data) {
+                const insp = data.inspection;
+                const parts = data.parts || [];
+                const reportDate = new Date();
+
+                const wb = XLSX.utils.book_new();
+
+                // Define Styles
+                const blackBorder = {
+                    top: { style: "thin", color: { rgb: "000000" } },
+                    bottom: { style: "thin", color: { rgb: "000000" } },
+                    left: { style: "thin", color: { rgb: "000000" } },
+                    right: { style: "thin", color: { rgb: "000000" } }
+                };
+
+                const styles = {
+                    mainTitle: {
+                        font: { bold: true, color: { rgb: "DC2626" }, sz: 16 },
+                        alignment: { horizontal: "left", vertical: "center" }
+                    },
+                    sectionHeader: {
+                        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+                        fill: { fgColor: { rgb: "1E293B" } }, 
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: blackBorder
+                    },
+                    metaLabel: {
+                        font: { bold: true, color: { rgb: "475569" }, sz: 10 },
+                        fill: { fgColor: { rgb: "F1F5F9" } }, 
+                        alignment: { horizontal: "right", vertical: "center" },
+                        border: blackBorder
+                    },
+                    metaValue: {
+                        font: { color: { rgb: "000000" }, sz: 10, bold: true },
+                        fill: { fgColor: { rgb: "FFFFFF" } },
+                        alignment: { horizontal: "left", vertical: "center", indent: 1 },
+                        border: blackBorder
+                    },
+                    tableHeader: {
+                        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+                        fill: { fgColor: { rgb: "DC2626" } }, 
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: blackBorder 
+                    },
+                    cellPart: {
+                        font: { bold: true, color: { rgb: "1E293B" } },
+                        fill: { fgColor: { rgb: "F8FAFC" } }, 
+                        alignment: { horizontal: "left", vertical: "center", indent: 1 },
+                        border: blackBorder 
+                    },
+                    cellData: {
+                        font: { color: { rgb: "000000" } },
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: blackBorder 
+                    }
+                };
+
+                // Prepare Data Array
+                let sheetData = [
+                    ["iPETRO INSPECTION REPORT"], 
+                    [""], 
+                    // Metadata Header Row
+                    ["EQUIPMENT DETAILS", "", "", "", "", "", "INSPECTION DETAILS", "", "", "", "", ""], 
+                    // Metadata Data Rows
+                    ["Description", insp.equipment_desc || '-', "", "", "", "", "Inspector", insp.inspected_by || 'N/A', "", "", "", ""],
+                    ["Tag No", insp.equipment_no || '-', "", "", "", "", "Date", new Date(insp.inspected_at).toLocaleDateString(), "", "", "", ""],
+                    ["PMT No", insp.pmt_no || '-', "", "", "", "", "Time", new Date(insp.inspected_at).toLocaleTimeString(), "", "", "", ""],
+                    ["Design Code", insp.design_code || '-', "", "", "", "", "", "", "", "", "", ""],
+                    [""], 
+                    // Main Table Header
+                    ["FLUID", "COMPONENT", "CODE", "TYPE", "SPEC", "GRADE", "INSUL", "T(°C)", "P(MPa)", "RISK", "C. GROUP"]
+                ];
+                
+                parts.forEach(p => {
+                    const row = [
+                        p.fluid || '-',
+                        p.part_name || '-',
+                        p.design_code || insp.design_code || '-',
+                        p.type || '-',
+                        p.spec || '-',
+                        p.grade || '-',
+                        p.insulation ? (p.insulation.toLowerCase().startsWith('y') ? 'Y' : 'N') : 'N',
+                        parseFloat(p.operating_temp || p.design_temp || 0),
+                        parseFloat(p.operating_pressure || p.design_pressure || 0),
+                        p.current_risk_rating || 'LOW',
+                        p.corrosion_group || '-'
+                    ];
+                    sheetData.push(row);
+                });
+
+                const ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+                // Define Column Widths
+                ws['!cols'] = [
+                    { wch: 15 }, // Fluid
+                    { wch: 25 }, // Component
+                    { wch: 15 }, // Code
+                    { wch: 10 }, // Type
+                    { wch: 12 }, // Spec
+                    { wch: 10 }, // Grade
+                    { wch: 8 },  // Insul
+                    { wch: 10 }, // T
+                    { wch: 10 }, // P
+                    { wch: 12 }, // Risk
+                    { wch: 20 }  // Group
+                ];
+
+                // Merges for Metadata
+                ws['!merges'] = [
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } }, // Title
+                    // Equipment Block
+                    { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } }, // Header
+                    { s: { r: 3, c: 1 }, e: { r: 3, c: 5 } }, 
+                    { s: { r: 4, c: 1 }, e: { r: 4, c: 5 } }, 
+                    { s: { r: 5, c: 1 }, e: { r: 5, c: 5 } }, 
+                    { s: { r: 6, c: 1 }, e: { r: 6, c: 5 } }, 
+                    // Inspection Block
+                    { s: { r: 2, c: 6 }, e: { r: 2, c: 10 } }, // Header
+                    { s: { r: 3, c: 7 }, e: { r: 3, c: 10 } }, 
+                    { s: { r: 4, c: 7 }, e: { r: 4, c: 10 } }, 
+                    { s: { r: 5, c: 7 }, e: { r: 5, c: 10 } }, 
+                ];
+
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+                        if (!ws[cellRef]) ws[cellRef] = { v: "", t: "s" };
+
+                        if (R === 0) ws[cellRef].s = styles.mainTitle;
+                        else if (R === 2) {
+                             if ((C >= 0 && C <= 5) || (C >= 6 && C <= 10)) ws[cellRef].s = styles.sectionHeader;
+                        }
+                        else if (R >= 3 && R <= 6) {
+                            if (C === 0 || C === 6) ws[cellRef].s = styles.metaLabel;
+                            else if ((C >= 1 && C <= 5) || (C >= 7 && C <= 10)) ws[cellRef].s = styles.metaValue;
+                        }
+                        else if (R === 8) {
+                            ws[cellRef].s = styles.tableHeader;
+                        }
+                        else if (R > 8) {
+                            if (C === 1) ws[cellRef].s = styles.cellPart; // Highlight Component Name
+                            else ws[cellRef].s = styles.cellData;
+                        }
+                    }
+                }
+
+                XLSX.utils.book_append_sheet(wb, ws, "Inspection Plan");
+                const filename = `Inspection_Plan_${insp.equipment_no}_${reportDate.toISOString().slice(0,10)}.xlsx`;
+                XLSX.writeFile(wb, filename);
             }
 
             // ============================================================
-    //  PASTE THE NEW printReport FUNCTION HERE (BELOW triggerPPTExport)
-    // ============================================================
-    function printReport() {
-        if (!currentReportData) return;
-        
-        const insp = currentReportData.inspection;
-        // Format: iPETRO - Inspection Plan_TAG_DATE
-        const dateStr = new Date().toISOString().split('T')[0];
-        const newTitle = `iPETRO - Inspection Plan_${insp.equipment_no}_${dateStr}`;
-        
-        // 1. Store original title
-        const originalTitle = document.title;
-        
-        // 2. Change title (browsers use this as the PDF filename)
-        document.title = newTitle;
-        
-        // 3. Print
-        window.print();
-        
-        // 4. Restore title after a short delay
-        setTimeout(() => {
-            document.title = originalTitle;
-        }, 1000);
-    }
+            //  PASTE THE NEW printReport FUNCTION HERE (BELOW triggerPPTExport)
+            // ============================================================
+            function printReport() {
+                if (!currentReportData) return;
+                
+                const insp = currentReportData.inspection;
+                // Format: iPETRO - Inspection Plan_TAG_DATE
+                const dateStr = new Date().toISOString().split('T')[0];
+                const newTitle = `iPETRO - Inspection Plan_${insp.equipment_no}_${dateStr}`;
+                
+                // 1. Store original title
+                const originalTitle = document.title;
+                
+                // 2. Change title (browsers use this as the PDF filename)
+                document.title = newTitle;
+                
+                // 3. Print
+                window.print();
+                
+                // 4. Restore title after a short delay
+                setTimeout(() => {
+                    document.title = originalTitle;
+                }, 1000);
+            }
 
-    // ============================================================
-    //  UPDATE THE RETURN OBJECT AT THE END OF THE MODULE
-    // ============================================================
-    return {
-        loadHistory: loadHistory,
-        generatePlan: generatePlan,
-        triggerPPTExport: triggerPPTExport,
-        printReport: printReport // <--- ADD THIS LINE (Don't forget the comma above!)
-    };
+            // ============================================================
+            //  UPDATE THE RETURN OBJECT AT THE END OF THE MODULE
+            // ============================================================
+            return {
+                loadHistory: loadHistory,
+                generatePlan: generatePlan,
+                triggerPPTExport: triggerPPTExport,
+                deletePlan: deletePlan, 
+                printReport: printReport,
+                triggerExcelExport: triggerExcelExport,
+                handleSearch: handleSearch,
+                handleSort: handleSort
+            };
 
         })();
 
-
-
         window.generatePlan = InspectionPlanModule.generatePlan;
-
+        window.deletePlan = InspectionPlanModule.deletePlan;
         window.triggerPPTExport = InspectionPlanModule.triggerPPTExport;
         window.printReport = InspectionPlanModule.printReport;
-
+        window.triggerExcelExport = InspectionPlanModule.triggerExcelExport;
 
         // ================================================
-
         // APPLICATION INITIALIZATION
-
         // ================================================
-
         document.addEventListener('DOMContentLoaded', function() {
-
             AuthModule.init();
-
             SidebarModule.init();
-
             InspectionPlanModule.loadHistory();
-
         });
-
     </script>
-
 </body>
-
 </html>

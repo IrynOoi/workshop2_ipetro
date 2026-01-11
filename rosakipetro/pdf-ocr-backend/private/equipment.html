@@ -227,7 +227,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.375rem;
-            padding: 0.375rem 0.75rem;
+            padding: 0.25rem 0.625rem;
             font-size: 0.688rem;
             font-weight: 600;
             border-radius: 9999px;
@@ -238,7 +238,19 @@
         .badge-success {
             background: var(--color-success-light);
             color: var(--color-success);
-            border: 1px solid var(--color-success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .badge-warning {
+            background: #FEF3C7;
+            color: #D97706;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .badge-danger {
+            background: #FEE2E2;
+            color: #DC2626;
+            border: 1px solid rgba(220, 38, 38, 0.2);
         }
 
         .badge-info {
@@ -328,6 +340,38 @@
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--color-slate-200);
             box-shadow: var(--shadow-sm);
+        }
+
+        /* ================================================
+           TABLE SORTING STYLES
+           ================================================ */
+        th.sortable {
+            cursor: pointer;
+            transition: background-color 0.2s;
+            user-select: none;
+        }
+
+        th.sortable:hover {
+            background-color: #F1F5F9;
+        }
+
+        .sort-icon {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-left: 4px;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+        }
+
+        th.sorted-asc .sort-icon {
+            opacity: 1;
+            transform: rotate(180deg);
+        }
+
+        th.sorted-desc .sort-icon {
+            opacity: 1;
+            transform: rotate(0deg);
         }
 
         /* ================================================
@@ -424,8 +468,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
@@ -477,6 +528,22 @@
             <nav class="flex flex-col gap-1">
                 <div
                     class="sidebar-section-title px-6 mb-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    Overview
+                </div>
+
+                <a href="dashboard.html" class="sidebar-link group" data-page="dashboard">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+                    </svg>
+                    <span class="sidebar-text font-medium text-sm ml-3">Dashboard</span>
+                </a>
+
+                <div
+                    class="sidebar-section-title px-6 mb-3 mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                     Workspace
                 </div>
 
@@ -510,22 +577,29 @@
                     <span class="sidebar-text font-medium text-sm ml-3">Plans</span>
                 </a>
 
-                <div id="admin-section" class="sidebar-section-title px-6 mb-3 mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden">
+                <div id="admin-section"
+                    class="sidebar-section-title px-6 mb-3 mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden">
                     Administration
                 </div>
                 <a href="users.html" id="users-link" class="sidebar-link group hidden" data-page="users">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
                     </svg>
                     <span class="sidebar-text font-medium text-sm ml-3">Users</span>
                 </a>
 
-                <div class="sidebar-section-title px-6 mb-3 mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                <div
+                    class="sidebar-section-title px-6 mb-3 mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                     Account
                 </div>
                 <a href="profile.html" class="sidebar-link group" data-page="profile">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
                     <span class="sidebar-text font-medium text-sm ml-3">My Profile</span>
                 </a>
@@ -590,9 +664,12 @@
                     <span>System Ready</span>
                 </div>
                 <div class="h-8 w-px bg-slate-200 mx-1"></div>
-                <button onclick="openModal('add')" class="btn btn-primary shadow-md hover:shadow-lg">
+                <!-- ADD BUTTON HIDDEN BY DEFAULT -->
+                <button id="add-equip-btn" onclick="openModal('add')"
+                    class="btn btn-primary shadow-md hover:shadow-lg" style="display: none;">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
+                        </path>
                     </svg>
                     <span class="relative z-10">New Equipment</span>
                 </button>
@@ -601,34 +678,81 @@
 
         <!-- Main Content -->
         <main class="flex-1 overflow-auto p-6">
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-full">
+            <div
+                class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-full relative">
+
+                <!-- Table Tools / Search Bar -->
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center gap-4">
+                    <div class="relative w-full max-w-md">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <input type="text" id="searchInput" onkeyup="EquipmentModule.handleSearch(this.value)"
+                            class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-red-500 focus:border-red-500 sm:text-sm transition-shadow"
+                            placeholder="Search Equipment No, PMT or Description...">
+                    </div>
+                    <div class="text-xs text-gray-400" id="record-count">Loading records...</div>
+                </div>
+
+                <!-- Table Container -->
                 <div class="overflow-auto flex-1">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50 sticky top-0 z-10">
                             <tr>
+                                <th onclick="EquipmentModule.handleSort('equipment_no')"
+                                    class="sortable px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest group">
+                                    <div class="flex items-center">
+                                        Equipment No
+                                        <svg class="sort-icon w-4 h-4" data-col="equipment_no" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </th>
+                                <th onclick="EquipmentModule.handleSort('pmt_no')"
+                                    class="sortable px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest group">
+                                    <div class="flex items-center">
+                                        PMT No
+                                        <svg class="sort-icon w-4 h-4" data-col="pmt_no" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </th>
+                                <th onclick="EquipmentModule.handleSort('equipment_desc')"
+                                    class="sortable px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest group">
+                                    <div class="flex items-center">
+                                        Description
+                                        <svg class="sort-icon w-4 h-4" data-col="equipment_desc" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                    Equipment No</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                    PMT No</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                    Description</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                    Design Code</th>
+                                    Design Code
+                                </th>
                                 <th
                                     class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                    Parts</th>
+                                    Parts
+                                </th>
                                 <th
                                     class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                    Actions</th>
+                                    Actions
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="equip-list" class="bg-white divide-y divide-gray-200">
                             <tr>
-                                <td colspan="6" class="px-6 py-12 text-center text-gray-400">Loading database...</td>
+                                <td colspan="6" class="px-6 py-12 text-center text-gray-400">Loading database...
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -640,7 +764,8 @@
     <!-- ================================================
          MODAL
          ================================================ -->
-    <div id="modal" class="modal opacity-0 pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div id="modal"
+        class="modal opacity-0 pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="modal-overlay absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity"
             onclick="closeModal()"></div>
         <div
@@ -838,18 +963,24 @@
                     userNameElement.textContent = currentUser.username;
                 }
 
+                const addBtn = document.getElementById('add-equip-btn');
+
                 // Show admin section for admin users
                 if (currentUser.role === 'admin') {
                     const adminSection = document.getElementById('admin-section');
                     const usersLink = document.getElementById('users-link');
                     if (adminSection) adminSection.classList.remove('hidden');
                     if (usersLink) usersLink.classList.remove('hidden');
+
+                    // Show "Add Equipment" button
+                    if (addBtn) addBtn.style.display = 'inline-flex';
                 } else {
-                    const deleteButtons = document.querySelectorAll('button[onclick*="deleteEquipment"]');
-                    deleteButtons.forEach(btn => {
-                        btn.style.display = 'none';
-                    });
+                    // Hide "Add Equipment" button
+                    if (addBtn) addBtn.style.display = 'none';
                 }
+
+                // Refresh the table to show/hide buttons based on the now-confirmed role
+                EquipmentModule.renderList();
 
                 console.log('User UI updated:', currentUser.username, '(' + currentUser.role + ')');
             }
@@ -920,6 +1051,10 @@
         // ================================================
         const EquipmentModule = (function () {
             let allEquipmentData = [];
+            let partCounts = {}; // Store counts here
+            let currentSort = { column: 'equipment_no', direction: 'asc' };
+            let searchTerm = '';
+
             const fileInput = document.getElementById('image-upload');
             const preview = document.getElementById('image-preview');
             const uploadContent = document.getElementById('upload-content');
@@ -958,42 +1093,117 @@
                         credentials: 'include'
                     });
                     const result = await res.json();
-                    const tbody = document.getElementById('equip-list');
 
                     if (!result.success) throw new Error(result.error.message);
 
                     allEquipmentData = result.data;
 
-                    if (allEquipmentData.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No equipment found in database.</td></tr>';
-                        return;
-                    }
-
+                    // Fetch counts
                     const countRes = await fetch('http://localhost:3000/api/equipment-list', {
                         credentials: 'include'
                     });
                     const countData = (await countRes.json()).data || [];
-                    const partCounts = Object.fromEntries(countData.map(e => [e.equipment_id, e.parts_count]));
+                    partCounts = Object.fromEntries(countData.map(e => [e.equipment_id, e.parts_count]));
 
-                    tbody.innerHTML = allEquipmentData.map(e => `
-                        <tr class="hover:bg-gray-50 transition-colors group">
-                            <td class="px-6 py-4 text-sm font-medium text-gray-900">${e.equipment_no}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500 font-mono">${e.pmt_no}</td>
-                            <td class="px-6 py-4 text-sm text-gray-600">${e.equipment_desc}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500">${e.design_code || '<span class="text-gray-300">-</span>'}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500 text-center">
-                                <span class="bg-gray-100 text-gray-600 py-1 px-3 rounded-full text-xs font-bold border border-gray-200">${partCounts[e.equipment_id] || 0}</span>
-                            </td>
-                            <td class="px-6 py-4 text-right text-sm font-medium">
-                                <button onclick="openModal('edit', ${e.equipment_id})" class="text-blue-600 hover:text-blue-800 mr-4 transition-colors">Edit</button>
-                                <button onclick="deleteEquipment('${e.equipment_id}')" class="text-red-600 hover:text-red-800 transition-colors">Delete</button>
-                            </td>
-                        </tr>`).join('');
+                    renderList();
+
                 } catch (err) {
                     console.error(err);
                     const tbody = document.getElementById('equip-list');
                     tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">Error loading data. Check console.</td></tr>';
                 }
+            }
+
+            function handleSearch(val) {
+                searchTerm = val.toLowerCase();
+                renderList();
+            }
+
+            function handleSort(column) {
+                // Toggle direction if same column clicked, otherwise default to asc
+                if (currentSort.column === column) {
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.column = column;
+                    currentSort.direction = 'asc';
+                }
+
+                // Update UI Icons
+                updateSortIcons();
+                renderList();
+            }
+
+            function updateSortIcons() {
+                // Reset all
+                document.querySelectorAll('th.sortable').forEach(th => {
+                    th.classList.remove('sorted-asc', 'sorted-desc');
+                });
+
+                // Find the header for current sort and add class
+                const icon = document.querySelector(`.sort-icon[data-col="${currentSort.column}"]`);
+                if (icon) {
+                    icon.closest('th').classList.add(currentSort.direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                }
+            }
+
+            function renderList() {
+                const tbody = document.getElementById('equip-list');
+                const user = AuthModule.getCurrentUser();
+                const isAdmin = user && user.role === 'admin';
+                const recordCountDiv = document.getElementById('record-count');
+
+                // 1. Filter Data
+                let filteredData = allEquipmentData.filter(item => {
+                    return (
+                        item.equipment_no.toLowerCase().includes(searchTerm) ||
+                        item.pmt_no.toLowerCase().includes(searchTerm) ||
+                        item.equipment_desc.toLowerCase().includes(searchTerm)
+                    );
+                });
+
+                // 2. Sort Data
+                filteredData.sort((a, b) => {
+                    let valA = a[currentSort.column] || '';
+                    let valB = b[currentSort.column] || '';
+
+                    // String comparison case insensitive
+                    if (typeof valA === 'string') valA = valA.toLowerCase();
+                    if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                    if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+                    if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                recordCountDiv.innerText = `${filteredData.length} records found`;
+
+                if (filteredData.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No matching equipment found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = filteredData.map(e => {
+                    // Conditionally render buttons based on admin status
+                    const actionsHtml = isAdmin ? `
+                        <button onclick="openModal('edit', ${e.equipment_id})" class="text-blue-600 hover:text-blue-800 mr-4 transition-colors">Edit</button>
+                        <button onclick="deleteEquipment('${e.equipment_id}')" class="text-red-600 hover:text-red-800 transition-colors">Delete</button>
+                    ` : `<span class="text-gray-400 text-xs italic">Read-only</span>`;
+
+                    return `
+                        <tr class="hover:bg-gray-50 transition-colors group">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-900">${e.equipment_no}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500 font-mono">${e.pmt_no}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">${e.equipment_desc}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">${e.design_code || '<span class="text-gray-300">-</span>'}</td>
+                            
+                            <td class="px-6 py-4 text-sm text-gray-500 text-center">
+                                <span class="bg-gray-100 text-gray-600 py-1 px-3 rounded-full text-xs font-bold border border-gray-200">${partCounts[e.equipment_id] || 0}</span>
+                            </td>
+                            <td class="px-6 py-4 text-right text-sm font-medium">
+                                ${actionsHtml}
+                            </td>
+                        </tr>`;
+                }).join('');
             }
 
             async function deleteEquipment(id) {
@@ -1135,13 +1345,16 @@
                 init: init,
                 loadEquipment: loadEquipment,
                 deleteEquipment: deleteEquipment,
+                renderList: renderList,
                 getAllData: getAllData,
-                getUtils: getUtils
+                getUtils: getUtils,
+                handleSearch: handleSearch,
+                handleSort: handleSort
             };
         })();
 
         // ================================================
-        // MODAL MODULE (UPDATED)
+        // MODAL MODULE
         // ================================================
         const ModalModule = (function () {
             const modal = document.getElementById('modal');
@@ -1154,13 +1367,13 @@
                 document.getElementById('equip-form').reset();
                 document.getElementById('equip-id').value = '';
                 EquipmentModule.getUtils().resetUpload();
-                
+
                 // Always clear parts container first
                 partsContainer.innerHTML = '';
 
                 if (mode === 'edit') {
                     document.getElementById('modal-title').innerText = 'Edit Equipment';
-                    
+
                     // 1. Populate Basic Info
                     const equipment = EquipmentModule.getAllData().find(e => e.equipment_id == id);
                     if (equipment) {
@@ -1182,39 +1395,33 @@
                     // 2. Fetch and Populate Parts
                     try {
                         partsContainer.innerHTML = '<div class="text-xs text-gray-400 text-center py-2 animate-pulse">Loading parts data...</div>';
-                        
+
                         // Assumed backend endpoint to fetch parts
                         const res = await fetch(`http://localhost:3000/api/equipment-parts/${id}`, {
                             credentials: 'include'
                         });
                         const data = await res.json();
-                        
+
                         partsContainer.innerHTML = ''; // Clear loading
 
-                        // UPDATED: Check for 'parts' OR 'data' to be robust against backend response structure
                         const partsList = data.parts || data.data || [];
 
                         if (data.success && partsList.length > 0) {
                             partsList.forEach(part => {
-                                // We assume the backend returns objects like { part_name: "Shell" }
-                                addPartField(part.part_name || part); 
+                                addPartField(part.part_name || part);
                             });
                         } else {
-                            // If no parts exist, allow user to add one easily
-                             partsContainer.innerHTML = '<div class="text-xs text-gray-400 italic mb-2">No parts listed yet.</div>';
+                            partsContainer.innerHTML = '<div class="text-xs text-gray-400 italic mb-2">No parts listed yet.</div>';
                         }
                     } catch (error) {
                         console.error("Error fetching parts:", error);
-                        // Fallback in case endpoint doesn't exist yet
                         partsContainer.innerHTML = '';
-                        // Add one empty field so they can start adding
-                        addPartField(); 
+                        addPartField();
                     }
 
                 } else {
                     // ADD MODE
                     document.getElementById('modal-title').innerText = 'Add New Equipment';
-                    // Add one empty field by default
                     addPartField();
                 }
 
@@ -1233,14 +1440,13 @@
             }
 
             function addPartField(value = '') {
-                // If there was a "No parts listed" message, clear it
                 if (partsContainer.querySelector('.italic')) {
                     partsContainer.innerHTML = '';
                 }
 
                 const div = document.createElement('div');
                 div.className = 'flex items-center gap-2 animate-[fadeIn_0.2s_ease-out]';
-                
+
                 div.innerHTML = `
                     <input type="text" name="parts" value="${value}"
                         class="flex-1 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-shadow"
@@ -1253,11 +1459,10 @@
                         </svg>
                     </button>
                 `;
-                
+
                 partsContainer.appendChild(div);
-                
-                // Focus the input if it's new (empty value)
-                if(value === '') {
+
+                if (value === '') {
                     const input = div.querySelector('input');
                     input.focus();
                 }

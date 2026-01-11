@@ -1,4 +1,8 @@
-//inspection controller.js
+const path = require('path');
+// Explicitly point to the .env file in the parent directory
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+
+// inspection controller.js
 const db = require('../config/db');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
@@ -45,8 +49,6 @@ function calculateRiskRatingFromValues(temp, pressure) {
     }
 }
 
-
-
 /**
  * Inspection Controller
  * Handles inspection logging, data extraction, and report generation
@@ -56,13 +58,8 @@ function calculateRiskRatingFromValues(temp, pressure) {
  * Get inspection history
  * @route GET /api/inspection-history
  */
-
-
 exports.getInspectionHistory = async (req, res) => {
     try {
-        // UPDATED QUERY: 
-        // 1. Joins 'users' table to get the username.
-        // 2. Aliases 'u.username' as 'inspected_by' so the frontend works without changes.
         const query = `
             SELECT 
                 i.inspection_id, 
@@ -70,7 +67,7 @@ exports.getInspectionHistory = async (req, res) => {
                 e.equipment_no, 
                 e.equipment_desc, 
                 u.username AS inspected_by,
-                u.full_name,  -- <--- ADD THIS LINE to fetch the real name
+                u.full_name,
                 (SELECT COUNT(*) FROM inspection_part ip WHERE ip.inspection_id = i.inspection_id) as part_count
             FROM 
                 inspection i
@@ -83,7 +80,6 @@ exports.getInspectionHistory = async (req, res) => {
         `;
         const { rows } = await db.query(query);
 
-        // Send the data in the format the frontend expects
         res.status(200).json({
             success: true,
             data: rows
@@ -117,14 +113,12 @@ exports.getInspectionDetails = async (req, res) => {
     }
 };
 
-
 /**
  * Check if user is admin (for edit permissions)
  * @route GET /api/check-admin
  */
 exports.checkAdmin = async (req, res) => {
     try {
-        // This assumes you have user info in req.user from authentication middleware
         const isAdmin = req.user && req.user.role === 'admin';
         res.json({ 
             success: true, 
@@ -143,26 +137,23 @@ exports.checkAdmin = async (req, res) => {
  */
 exports.getInspectionPlan = async (req, res) => {
     const { id } = req.params; 
-    const client = await db.pool.connect();
     
     try {
-        // UPDATED QUERY:
-        // 1. Removed 'i.inspected_by' (column does not exist)
-        // 2. Added LEFT JOIN users to get username and full_name using inspector_id
-        const inspInfo = await client.query(
+        const inspInfo = await db.query(
             `SELECT 
                 i.inspection_id, 
                 i.inspected_at, 
-                u.username AS inspected_by,   -- Alias username so frontend works
-                u.full_name,                  -- Get full name for report
+                u.username AS inspected_by,
+                u.full_name,
                 e.equipment_no, 
                 e.equipment_desc, 
                 e.pmt_no, 
                 e.design_code, 
-                e.image_url
+                e.image_url,
+                i.notes
              FROM inspection i
              JOIN equipment e ON i.equipment_id = e.equipment_id
-             LEFT JOIN users u ON i.inspector_id = u.user_id -- Join with users table
+             LEFT JOIN users u ON i.inspector_id = u.user_id
              WHERE i.inspection_id = $1`,
             [id]
         );
@@ -175,13 +166,13 @@ exports.getInspectionPlan = async (req, res) => {
         }
 
         // Get parts data
-        const partInfo = await client.query(
+        const partInfo = await db.query(
             'SELECT * FROM inspection_part WHERE inspection_id = $1 ORDER BY part_name',
             [id]
         );
 
         // Get inspection methods
-        const methodInfo = await client.query(
+        const methodInfo = await db.query(
             'SELECT * FROM inspection_methods WHERE inspection_id = $1',
             [id]
         );
@@ -196,13 +187,11 @@ exports.getInspectionPlan = async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Database Error:", err);
+        console.error("Database Error in getInspectionPlan:", err);
         res.status(500).json({ 
-            success: false, // Ensure frontend sees this as a failure
+            success: false, 
             error: { message: "Database fetch failed: " + err.message } 
         });
-    } finally {
-        client.release();
     }
 };
 
@@ -212,7 +201,10 @@ exports.getInspectionPlan = async (req, res) => {
  */
 exports.saveData = async (req, res) => {
     const { data } = req.body;
-    const client = await db.pool.connect();
+    
+    // For transactions, we need a client
+    // If db.pool exists, use it. If db IS the pool/client, use it directly.
+    const client = typeof db.pool !== 'undefined' ? await db.pool.connect() : await db.connect();
     
     try {
         await client.query('BEGIN');
@@ -220,7 +212,6 @@ exports.saveData = async (req, res) => {
         const { equipment_id, inspector_name, inspection_date, readings } = data;
 
         // 1. LOOKUP USER ID
-        // The frontend sends 'inspector_name' (username), but the DB needs 'inspector_id' (integer).
         let inspectorId = null;
         if (inspector_name && inspector_name !== 'Anonymous' && inspector_name !== 'N/A') {
             const userRes = await client.query(
@@ -233,7 +224,6 @@ exports.saveData = async (req, res) => {
         }
 
         // 2. INSERT INTO INSPECTION TABLE
-        // Uses 'inspector_id' column instead of the old 'inspected_by' column
         const inspResult = await client.query(
             `INSERT INTO inspection (equipment_id, inspector_id, inspected_at) 
              VALUES ($1, $2, $3) 
@@ -243,7 +233,6 @@ exports.saveData = async (req, res) => {
         const newInspectionId = inspResult.rows[0].inspection_id;
 
         // 3. UPDATE EQUIPMENT DESIGN CODE (Optional)
-        // If the first reading has a design code, update the master equipment record
         if (readings && readings.length > 0 && readings[0].design_code) {
             await client.query(
                 'UPDATE equipment SET design_code = $1 WHERE equipment_id = $2',
@@ -254,10 +243,8 @@ exports.saveData = async (req, res) => {
         // 4. INSERT PART READINGS
         if (readings && readings.length > 0) {
             for (const reading of readings) {
-                // Skip invalid entries
                 if (!reading.part_id) continue;
                 
-                // Calculate Risk Rating
                 const current_risk_rating = calculateRiskRatingFromValues(
                     reading.operating_temp || reading.design_temp,
                     reading.operating_pressure || reading.design_pressure
@@ -317,20 +304,24 @@ exports.saveData = async (req, res) => {
             error: { message: error.message } 
         });
     } finally {
-        client.release();
+        if(client.release) client.release();
     }
 };
 
 
 // Add API endpoint to update risk rating
 exports.updateRiskRating = async (req, res) => {
-    const { inspectionId, partId, temperature, pressure } = req.body;
+    const { inspectionId, partId, temperature, pressure, riskRating } = req.body;
     
     try {
-        // Calculate new risk rating
-        const newRiskRating = calculateRiskRatingFromValues(temperature, pressure);
+        // If a manual risk rating is provided (dropdown change), use it.
+        // Otherwise, calculate based on temperature/pressure (auto-calc).
+        let newRiskRating = riskRating;
         
-        // Update the database
+        if (!newRiskRating) {
+             newRiskRating = calculateRiskRatingFromValues(temperature, pressure);
+        }
+        
         await db.query(
             `UPDATE inspection_part 
              SET current_risk_rating = $1,
@@ -351,6 +342,48 @@ exports.updateRiskRating = async (req, res) => {
         });
     }
 };
+
+/**
+ * Delete inspection plan
+ * @route DELETE /api/inspection/:id
+ */
+exports.deleteInspection = async (req, res) => {
+    const { id } = req.params;
+    
+    const client = typeof db.pool !== 'undefined' ? await db.pool.connect() : await db.connect();
+    
+    try {
+        await client.query('BEGIN');
+        
+        await client.query('DELETE FROM inspection_methods WHERE inspection_id = $1', [id]);
+        await client.query('DELETE FROM inspection_part WHERE inspection_id = $1', [id]);
+        const result = await client.query('DELETE FROM inspection WHERE inspection_id = $1 RETURNING *', [id]);
+        
+        if (result.rowCount === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ success: false, message: 'Inspection record not found.' });
+        }
+
+        await client.query('COMMIT');
+        
+        res.json({ 
+            success: true, 
+            message: `Inspection #${id} successfully deleted.` 
+        });
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error("Delete Error:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to delete inspection record.',
+            error: error.message 
+        });
+    } finally {
+        if(client.release) client.release();
+    }
+};
+
 
 /**
  * Extract data from technical drawing using AI (Gemini)
@@ -420,7 +453,7 @@ exports.extractData = async (req, res) => {
         `;
 
 
-        const apiKey = "AIzaSyDewdfXEn-72_lS6GvThled9FS7ieA10Uo";
+        const apiKey = "";
         const MODEL_NAME = "gemini-2.5-flash";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${apiKey}`;
 
@@ -458,7 +491,4 @@ exports.extractData = async (req, res) => {
             error: { message: "AI extraction failed: " + error.message } 
         });
     }
-
-
-    
 };

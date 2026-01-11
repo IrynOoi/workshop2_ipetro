@@ -174,39 +174,18 @@
         }
 
         .parts-table td {
-    border-bottom: 1px solid var(--color-slate-100);
-    border-right: 1px solid var(--color-slate-50);
-    padding: 0;
-    text-align: center;
-    vertical-align: middle;
-    transition: background-color var(--transition-base);
-    position: relative; /* Add this */
-}
-
-.parts-table input {
-    width: 100%;
-    border: none !important;   /* Change from 2px solid transparent to none */
-    text-align: center;
-    background: transparent;
-    padding: 0.625rem 0.5rem;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.813rem;
-    color: var(--color-slate-700);
-    transition: all var(--transition-base);
-    outline: none;
-    box-sizing: border-box;
-}
-
-.parts-table input:focus {
-    background: white;
-    box-shadow: inset 0 0 0 2px var(--color-primary); /* Use inset shadow instead of border */
-    position: relative;
-    z-index: 5;
-}
+            border-bottom: 1px solid var(--color-slate-100);
+            border-right: 1px solid var(--color-slate-50);
+            padding: 0;
+            text-align: center;
+            vertical-align: middle;
+            transition: background-color var(--transition-base);
+            position: relative;
+        }
 
         .parts-table input {
             width: 100%;
-            border: 2px solid transparent;
+            border: none !important;
             text-align: center;
             background: transparent;
             padding: 0.625rem 0.5rem;
@@ -215,12 +194,12 @@
             color: var(--color-slate-700);
             transition: all var(--transition-base);
             outline: none;
+            box-sizing: border-box;
         }
 
         .parts-table input:focus {
             background: white;
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 3px var(--color-primary-glow);
+            box-shadow: inset 0 0 0 2px var(--color-primary);
             position: relative;
             z-index: 5;
         }
@@ -262,47 +241,6 @@
             box-shadow: var(--shadow-xl);
             position: relative;
         }
-
-        /* ================================================
-   READ-ONLY INPUT STYLES
-   ================================================ */
-.readonly-input {
-    background-color: #f3f4f6 !important;
-    color: #6b7280 !important;
-    cursor: not-allowed !important;
-    border-color: #d1d5db !important;
-    pointer-events: none;
-}
-
-.readonly-input:hover {
-    background-color: #f3f4f6 !important;
-    border-color: #d1d5db !important;
-}
-
-.readonly-input:focus {
-    background-color: #f3f4f6 !important;
-    border-color: #d1d5db !important;
-    box-shadow: none !important;
-}
-
-/* Also update existing input styles to handle readonly */
-.parts-table input[readonly] {
-    background-color: #f3f4f6 !important;
-    color: #6b7280 !important;
-    cursor: not-allowed !important;
-    border-color: #d1d5db !important;
-}
-
-.parts-table input[readonly]:hover {
-    background-color: #f3f4f6 !important;
-    border-color: #d1d5db !important;
-}
-
-.parts-table input[readonly]:focus {
-    background-color: #f3f4f6 !important;
-    border-color: #d1d5db !important;
-    box-shadow: none !important;
-}
 
         #sidebar::before {
             content: '';
@@ -538,6 +476,12 @@
             border: 1px solid var(--color-info);
         }
 
+        .badge-secondary {
+            background: var(--color-slate-100);
+            color: var(--color-slate-600);
+            border: 1px solid var(--color-slate-300);
+        }
+
         /* ================================================
            PDF VIEWER ENHANCEMENTS
            ================================================ */
@@ -661,6 +605,69 @@
         .animate-fade-in {
             animation: fadeIn 0.5s ease-out;
         }
+
+        /* ================================================
+           READ-ONLY INPUT STYLES
+           ================================================ */
+        .readonly-input {
+            background-color: #f3f4f6 !important;
+            color: #6b7280 !important;
+            cursor: not-allowed !important;
+            border-color: #d1d5db !important;
+            pointer-events: none;
+        }
+
+        .readonly-input:hover {
+            background-color: #f3f4f6 !important;
+            border-color: #d1d5db !important;
+        }
+
+        .readonly-input:focus {
+            background-color: #f3f4f6 !important;
+            border-color: #d1d5db !important;
+            box-shadow: none !important;
+        }
+
+        /* Also update existing input styles to handle readonly */
+        .parts-table input[readonly] {
+            background-color: #f3f4f6 !important;
+            color: #6b7280 !important;
+            cursor: not-allowed !important;
+            border-color: #d1d5db !important;
+        }
+
+        .parts-table input[readonly]:hover {
+            background-color: #f3f4f6 !important;
+            border-color: #d1d5db !important;
+        }
+
+        .parts-table input[readonly]:focus {
+            background-color: #f3f4f6 !important;
+            border-color: #d1d5db !important;
+            box-shadow: none !important;
+        }
+
+        /* ================================================
+           MODAL TRANSITIONS
+           ================================================ */
+        .modal {
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .modal-container {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: scale(0.95);
+            opacity: 0;
+        }
+
+        .modal-active .modal-container {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        body.modal-active {
+            overflow: hidden;
+        }
     </style>
 </head>
 
@@ -709,12 +716,23 @@
         <!-- Navigation Links -->
         <div class="flex-1 overflow-y-auto py-6">
             <nav class="flex flex-col gap-1">
-                <div
-                    class="sidebar-section-title px-6 mb-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                <div class="sidebar-section-title px-6 mb-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    Overview
+                </div>
+
+                <a href="dashboard.html" class="sidebar-link group" data-page="dashboard">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+                    </svg>
+                    <span class="sidebar-text font-medium text-sm ml-3">Dashboard</span>
+                </a>
+
+                <div class="sidebar-section-title px-6 mb-3 mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                     Workspace
                 </div>
 
-                <a href="test.html" class="sidebar-link group" data-page="test">
+                <a href="test.html" class="sidebar-link group active" data-page="test">
                     <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -735,8 +753,11 @@
                 </a>
 
                 <a href="inspectionplan.html" class="sidebar-link group" data-page="inspectionplan">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                        </path>
                     </svg>
                     <span class="sidebar-text font-medium text-sm ml-3">Plans</span>
                 </a>
@@ -767,11 +788,11 @@
         <div class="p-4 bg-slate-900/50 border-t border-white/10 shrink-0">
             <div class="flex items-center gap-3 p-3 rounded-xl mb-3 bg-white/5">
                 <div
-                    class="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-sm font-bold text-white shadow-lg shrink-0 ring-2 ring-red-400/30">
+                    class="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-sm font-bold text-white shadow-lg shrink-0 ring-2 ring-red-400/30 user-initials">
                     --
                 </div>
                 <div class="user-info-text overflow-hidden flex-1">
-                    <div class="text-sm font-semibold text-white truncate">Loading...</div>
+                    <div class="text-sm font-semibold text-white truncate user-name">Loading...</div>
                     <div class="text-[11px] text-emerald-400 flex items-center gap-2 font-medium mt-0.5">
                         <span class="relative flex h-2 w-2">
                             <span
@@ -782,14 +803,10 @@
                     </div>
                 </div>
             </div>
-
-            <button onclick="logout()" class="btn btn-primary w-full shadow-lg">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
-                    </path>
-                </svg>
-                <span class="sidebar-text relative z-10">Logout</span>
+            
+            <button onclick="AuthModule.logout()" class="btn btn-primary w-full shadow-lg flex items-center justify-center gap-2 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                <span class="relative z-10">Logout</span>
             </button>
         </div>
     </aside>
@@ -829,174 +846,238 @@
                     </svg>
                     <span class="relative z-10">Export Report</span>
                 </button>
+                <button id="manual-entry-btn" onclick="ManualEntryModule.openModal()" class="btn btn-primary ml-2 shadow-md hover:shadow-lg" disabled>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    <span class="relative z-10">Manual Entry</span>
+                </button>
             </div>
         </header>
 
         <!-- Main Content -->
-        <main class="flex-1 overflow-hidden flex p-6 gap-6">
+        <main class="flex-1 overflow-hidden flex flex-col p-6 gap-6">
 
-            <!-- ================================================
-                 LEFT COLUMN: PDF & DATA
-                 ================================================ -->
-            <div class="flex-grow flex flex-col gap-6 min-w-0 w-2/3">
-
-                <!-- Controls Card -->
-                <div class="card shrink-0">
-                    <div class="p-6 flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
-                        <div class="w-full md:w-auto">
-                            <label class="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-wide">
-                                Select Asset Equipment
-                            </label>
-                            <div class="relative">
-                                <select id="equipment-select" class="form-select w-full md:w-80">
-                                    <option value="">Loading Database...</option>
-                                </select>
-                                <div
-                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </div>
+            <!-- Controls Card -->
+            <div class="card shrink-0">
+                <div class="p-6 flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
+                    <div class="w-full md:w-auto">
+                        <label class="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-wide">
+                            Select Asset Equipment
+                        </label>
+                        <div class="relative">
+                            <select id="equipment-select" class="form-select w-full md:w-80">
+                                <option value="">Loading Database...</option>
+                            </select>
+                            <div
+                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7"></path>
+                                </svg>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="flex items-center gap-3">
-                            <label id="file-upload-label" class="hidden btn btn-primary cursor-pointer">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                                </svg>
-                                <span class="relative z-10">Upload PDF</span>
-                                <input id="file-upload" type="file" accept=".pdf" class="hidden">
-                            </label>
+                    <div class="flex items-center gap-3">
+                        <label id="file-upload-label" class="hidden btn btn-primary cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                            </svg>
+                            <span class="relative z-10">Upload PDF</span>
+                            <input id="file-upload" type="file" accept=".pdf" class="hidden">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full Width Content Area -->
+            <div class="flex-grow flex flex-col gap-6 min-h-0 w-full">
+
+                <!-- PDF Viewer -->
+                <div id="preview-area"
+                    class="relative w-full h-1/2 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border border-slate-200 overflow-hidden flex items-center justify-center group shadow-md">
+
+                    <!-- Empty State -->
+                    <div id="upload-placeholder" class="text-center animate-fade-in">
+                        <div
+                            class="w-24 h-24 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
                         </div>
+                        <p class="font-semibold text-slate-600 text-lg">No PDF Selected</p>
+                        <p class="text-sm text-slate-400 mt-2">Select equipment to unlock upload</p>
+                    </div>
+
+                    <!-- PDF Canvas -->
+                    <canvas id="pdf-canvas" class="hidden bg-white transition-all duration-300"></canvas>
+
+                    <!-- Page Navigation -->
+                    <div id="page-nav"
+                        class="hidden absolute bottom-6 left-1/2 transform -translate-x-1/2 text-white px-6 py-3 rounded-full flex items-center gap-4 z-20">
+                        <button id="prev-page" class="p-1 rounded-lg transition-all hover:bg-white/10">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <span
+                            class="text-sm font-mono font-semibold border-l border-r border-slate-600 px-4 min-w-[70px] text-center">
+                            <span id="page_num">1</span> / <span id="page_count">--</span>
+                        </span>
+                        <button id="next-page" class="p-1 rounded-lg transition-all hover:bg-white/10">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                        <div class="w-px h-5 bg-slate-600 mx-2"></div>
+                        <button id="process-all-btn"
+                            class="text-xs font-bold text-blue-400 hover:text-blue-300 uppercase tracking-wider px-3 py-1 rounded-lg hover:bg-white/10 transition-all">
+                            Scan All
+                        </button>
+                    </div>
+
+                    <!-- Loading Indicator -->
+                    <div id="loading-indicator"
+                        class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+                        <div class="loader-ring mb-4"></div>
+                        <span id="loading-text"
+                            class="text-base font-semibold text-slate-700 animate-pulse">Analyzing
+                            Document...</span>
                     </div>
                 </div>
 
-                <!-- Split View -->
-                <div class="flex-1 flex flex-col gap-6 min-h-0">
-
-                    <!-- PDF Viewer -->
-                    <div id="preview-area"
-                        class="relative h-1/2 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border border-slate-200 overflow-hidden flex items-center justify-center group shadow-md">
-
-                        <!-- Empty State -->
-                        <div id="upload-placeholder" class="text-center animate-fade-in">
-                            <div
-                                class="w-24 h-24 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                                <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                    </path>
-                                </svg>
-                            </div>
-                            <p class="font-semibold text-slate-600 text-lg">No PDF Selected</p>
-                            <p class="text-sm text-slate-400 mt-2">Select equipment to unlock upload</p>
-                        </div>
-
-                        <!-- PDF Canvas -->
-                        <canvas id="pdf-canvas" class="hidden bg-white transition-all duration-300"></canvas>
-
-                        <!-- Page Navigation -->
-                        <div id="page-nav"
-                            class="hidden absolute bottom-6 left-1/2 transform -translate-x-1/2 text-white px-6 py-3 rounded-full flex items-center gap-4 z-20">
-                            <button id="prev-page" class="p-1 rounded-lg transition-all hover:bg-white/10">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 19l-7-7 7-7"></path>
-                                </svg>
-                            </button>
-                            <span
-                                class="text-sm font-mono font-semibold border-l border-r border-slate-600 px-4 min-w-[70px] text-center">
-                                <span id="page_num">1</span> / <span id="page_count">--</span>
-                            </span>
-                            <button id="next-page" class="p-1 rounded-lg transition-all hover:bg-white/10">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </button>
-                            <div class="w-px h-5 bg-slate-600 mx-2"></div>
-                            <button id="process-all-btn"
-                                class="text-xs font-bold text-blue-400 hover:text-blue-300 uppercase tracking-wider px-3 py-1 rounded-lg hover:bg-white/10 transition-all">
-                                Scan All
-                            </button>
-                        </div>
-
-                        <!-- Loading Indicator -->
-                        <div id="loading-indicator"
-                            class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center z-50">
-                            <div class="loader-ring mb-4"></div>
-                            <span id="loading-text"
-                                class="text-base font-semibold text-slate-700 animate-pulse">Analyzing
-                                Document...</span>
-                        </div>
-                    </div>
-
-                    <!-- Data Table -->
-                    <div class="card h-1/2 flex flex-col overflow-hidden">
-                        <div class="card-header flex justify-between items-center">
-                            <h2
-                                class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center gap-2">
+                <!-- Data Table -->
+                <div class="card w-full h-1/2 flex flex-col overflow-hidden">
+                    <div class="card-header flex justify-between items-center">
+                        <div class="flex items-center gap-4">
+                            <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center gap-2">
                                 <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                                 Extracted Data
                             </h2>
                             <span id="grid-status-badge" class="badge badge-info">Loading...</span>
                         </div>
-                        <div id="parts-table-container" class="flex-1 overflow-auto">
-                            <div class="flex items-center justify-center h-full text-slate-400 text-sm">
-                                <div class="text-center">
-                                    <svg class="w-16 h-16 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                        </path>
-                                    </svg>
-                                    <p class="font-medium">Waiting for input...</p>
-                                </div>
+                        
+                        <button id="save-db-btn" class="btn btn-success text-xs" style="display: none;" disabled>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4">
+                                </path>
+                            </svg>
+                            <span class="relative z-10">Save</span>
+                        </button>
+                    </div>
+                    <div id="parts-table-container" class="flex-1 overflow-auto">
+                        <div class="flex items-center justify-center h-full text-slate-400 text-sm">
+                            <div class="text-center">
+                                <svg class="w-16 h-16 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg>
+                                <p class="font-medium">Waiting for input...</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- ================================================
-                 RIGHT COLUMN: JSON OUTPUT
-                 ================================================ -->
-            <div
-                class="w-1/3 min-w-[320px] flex flex-col bg-slate-900 rounded-2xl shadow-xl border border-slate-700 overflow-hidden">
-                <div class="p-5 border-b border-slate-700 bg-slate-800/50 flex justify-between items-center">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-                        </svg>
-                        <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wide font-mono">
-                            System Output
-                        </h2>
-                    </div>
-                    <button id="save-db" class="btn btn-success text-xs" disabled>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4">
-                            </path>
-                        </svg>
-                        <span class="relative z-10">Push to DB</span>
-                    </button>
-                </div>
-                <div class="relative flex-1">
-                    <textarea id="output-text"
-                        class="absolute inset-0 w-full h-full p-5 font-mono text-sm bg-slate-900 text-cyan-300 resize-none focus:outline-none leading-relaxed"
-                        readonly spellcheck="false" placeholder="// JSON response will appear here..."></textarea>
-                </div>
-                <div class="h-8 bg-blue-600 text-white text-xs flex items-center px-4 justify-between font-mono">
-                    <span>JSON</span>
-                    <span>UTF-8</span>
-                </div>
-            </div>
         </main>
+    </div>
+
+    <!-- Manual Entry Modal -->
+    <div id="manual-entry-modal" class="modal opacity-0 pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onclick="ManualEntryModule.closeModal()"></div>
+        <div class="modal-container bg-white w-full max-w-lg rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 class="text-lg font-bold text-gray-800">Manual Data Entry</h3>
+                <button onclick="ManualEntryModule.closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <form id="manual-entry-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Part Name</label>
+                        <select id="manual-part-select" class="form-select w-full" required>
+                            <option value="">Select Part...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Phase</label>
+                            <input type="text" id="manual-phase" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-shadow">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Fluid</label>
+                            <input type="text" id="manual-fluid" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-shadow">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Design Code</label>
+                            <input type="text" id="manual-design-code" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-shadow">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Insulation</label>
+                            <input type="text" id="manual-insulation" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-shadow">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Material Type</label>
+                            <input type="text" id="manual-type" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-shadow">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Spec</label>
+                            <input type="text" id="manual-spec" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-shadow">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Grade</label>
+                            <input type="text" id="manual-grade" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-shadow">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Design Temp (°C)</label>
+                            <input type="number" step="0.01" id="manual-design-temp" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-shadow">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Design Press (MPa)</label>
+                            <input type="number" step="0.01" id="manual-design-press" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-shadow">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Operating Temp (°C)</label>
+                            <input type="number" step="0.01" id="manual-temp" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-shadow">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Operating Press (MPa)</label>
+                            <input type="number" step="0.01" id="manual-press" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-shadow">
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex justify-end gap-3">
+                        <button type="button" onclick="ManualEntryModule.closeModal()" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                        <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 shadow-md transition-all">Add Entry</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- ================================================
@@ -1020,9 +1101,6 @@
         const AuthModule = (function () {
             let currentUser = null;
 
-            /**
-             * Initialize authentication system
-             */
             async function initAuth() {
                 try {
                     const res = await fetch('/auth/me', {
@@ -1042,59 +1120,48 @@
                 }
             }
 
-            /**
-             * Update UI with current user information
-             */
-      function updateUserUI() {
-    if (!currentUser) return;
+            function updateUserUI() {
+                if (!currentUser) return;
     
-    const userInitials = document.querySelector('.w-10.h-10.rounded-full');
-    if (userInitials) {
-        userInitials.textContent = currentUser.username.substring(0, 2).toUpperCase();
-    }
+                const userInitials = document.querySelector('.w-10.h-10.rounded-full');
+                if (userInitials) {
+                    userInitials.textContent = currentUser.username.substring(0, 2).toUpperCase();
+                }
     
-    const userNameElement = document.querySelector('.user-info-text .text-sm');
-    if (userNameElement) {
-        userNameElement.textContent = currentUser.username;
-    }
+                const userNameElement = document.querySelector('.user-info-text .text-sm');
+                if (userNameElement) {
+                    userNameElement.textContent = currentUser.username;
+                }
     
-    // Hide save button for non-admin users
- 
-        const saveBtn = document.getElementById('save-db-btn');
-        if (saveBtn) {
-            if (currentUser.role === 'admin') {
-                saveBtn.style.display = 'flex';
-            } else {
-                saveBtn.style.display = 'none'; // <--- This line hides it for normal users
+                const saveBtn = document.getElementById('save-db-btn');
+                if (saveBtn) {
+                     // Allow all authenticated users to see the save button
+                     saveBtn.style.display = 'flex';
+                }
+    
+                // Refresh table auth state
+                setTimeout(() => {
+                    if (window.DataModule && typeof window.DataModule.refreshTableWithAuthStatus === 'function') {
+                        window.DataModule.refreshTableWithAuthStatus();
+                    }
+                }, 100);
+    
+                // Show admin section for admin users
+                if (currentUser.role === 'admin') {
+                    const adminSection = document.getElementById('admin-section');
+                    const usersLink = document.getElementById('users-link');
+                    if (adminSection) adminSection.classList.remove('hidden');
+                    if (usersLink) usersLink.classList.remove('hidden');
+                } else {
+                    const deleteButtons = document.querySelectorAll('button[onclick*="delete"], .delete-btn');
+                    deleteButtons.forEach(btn => {
+                        btn.style.display = 'none';
+                    });
+                }
+    
+                console.log('User UI updated:', currentUser.username, '(' + currentUser.role + ')');
             }
-        }
-    
-    // === ADD THIS ===
-    // Refresh the table to update readonly/editable state
-    setTimeout(() => {
-        if (window.DataModule && typeof window.DataModule.refreshTableWithAuthStatus === 'function') {
-            window.DataModule.refreshTableWithAuthStatus();
-        }
-    }, 100);
-    // ================
-    
-    // Show admin section for admin users
-    if (currentUser.role === 'admin') {
-        const adminSection = document.getElementById('admin-section');
-        const usersLink = document.getElementById('users-link');
-        if (adminSection) adminSection.classList.remove('hidden');
-        if (usersLink) usersLink.classList.remove('hidden');
-    } else {
-        const deleteButtons = document.querySelectorAll('button[onclick*="delete"], .delete-btn');
-        deleteButtons.forEach(btn => {
-            btn.style.display = 'none';
-        });
-    }
-    
-    console.log('User UI updated:', currentUser.username, '(' + currentUser.role + ')');
-}          /**
-             * Handle user logout
-             */
+
             async function logout() {
                 const result = await Swal.fire({
                     ...CONFIG.SWAL_OPTIONS,
@@ -1143,9 +1210,6 @@
                 }
             }
 
-            /**
-             * Get current authenticated user
-             */
             function getCurrentUser() {
                 return currentUser;
             }
@@ -1157,51 +1221,35 @@
             };
         })();
 
-        // Expose logout to global scope
         window.logout = AuthModule.logout;
-
-
-
 
         // ================================================
         // SIDEBAR MODULE
         // ================================================
         const SidebarModule = (function () {
-            /**
-             * Initialize sidebar functionality
-             */
             function init() {
                 const sidebar = document.getElementById('sidebar');
                 const toggleBtn = document.getElementById('toggle-sidebar-btn');
                 const mobileOverlay = document.getElementById('mobile-overlay');
-                const currentPage = 'test';
 
-                // Set active page
                 document.querySelectorAll('.sidebar-link[data-page="test"]').forEach(link => {
                     link.classList.add('active');
                 });
 
-                /**
-                 * Toggle sidebar visibility
-                 */
                 function toggleSidebar() {
                     if (window.innerWidth <= 768) {
-                        // Mobile behavior
                         sidebar.classList.toggle('mobile-open');
                         mobileOverlay.classList.toggle('active');
                     } else {
-                        // Desktop behavior
                         sidebar.classList.toggle('collapsed');
                         document.body.classList.toggle('sidebar-collapsed');
                         localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
                     }
                 }
 
-                // Event listeners
                 toggleBtn.addEventListener('click', toggleSidebar);
                 mobileOverlay.addEventListener('click', toggleSidebar);
 
-                // Restore sidebar state
                 if (window.innerWidth > 768 && localStorage.getItem('sidebarCollapsed') === 'true') {
                     sidebar.classList.add('collapsed');
                     document.body.classList.add('sidebar-collapsed');
@@ -1227,9 +1275,6 @@
             let pdfDoc = null;
             let pageNum = 1;
 
-            /**
-             * Initialize PDF module
-             */
             function init() {
                 uploadInput.addEventListener('change', handleFileUpload);
                 document.getElementById('prev-page').onclick = previousPage;
@@ -1237,9 +1282,6 @@
                 document.getElementById('process-all-btn').addEventListener('click', processAllPages);
             }
 
-            /**
-             * Handle PDF file upload
-             */
             function handleFileUpload() {
                 if (this.files[0]) {
                     const reader = new FileReader();
@@ -1256,9 +1298,6 @@
                 }
             }
 
-            /**
-             * Render specific PDF page
-             */
             function renderPage(num, auto = false) {
                 pageNum = num;
                 document.getElementById('page_num').textContent = num;
@@ -1291,23 +1330,14 @@
                 });
             }
 
-            /**
-             * Navigate to previous page
-             */
             function previousPage() {
                 if (pageNum > 1) renderPage(pageNum - 1);
             }
 
-            /**
-             * Navigate to next page
-             */
             function nextPage() {
                 if (pageNum < pdfDoc.numPages) renderPage(pageNum + 1);
             }
 
-            /**
-             * Process all pages in batch
-             */
             async function processAllPages() {
                 if (!pdfDoc) return;
 
@@ -1336,9 +1366,6 @@
                 });
             }
 
-            /**
-             * Get canvas element
-             */
             function getCanvas() {
                 return pdfCanvas;
             }
@@ -1354,12 +1381,8 @@
         // ================================================
         const OCRModule = (function () {
             const loadingInd = document.getElementById('loading-indicator');
-            const outputText = document.getElementById('output-text');
-            const saveBtn = document.getElementById('save-db');
+            const saveBtn = document.getElementById('save-db-btn');
 
-            /**
-             * Run OCR on current PDF page
-             */
             async function runOCR(isBatch) {
                 loadingInd.classList.remove('hidden');
                 const canvas = PDFModule.getCanvas();
@@ -1378,8 +1401,6 @@
 
                     if (res.success) {
                         DataModule.fillTable(res.data.readings);
-                        outputText.value = (isBatch ? outputText.value + "\n" : "") +
-                            JSON.stringify(res.data, null, 2);
                         saveBtn.disabled = false;
                     }
                 } catch (e) {
@@ -1396,43 +1417,119 @@
         })();
 
         // ================================================
+        // MANUAL ENTRY MODULE
+        // ================================================
+        const ManualEntryModule = (function() {
+            const modal = document.getElementById('manual-entry-modal');
+            const form = document.getElementById('manual-entry-form');
+            const partSelect = document.getElementById('manual-part-select');
+
+            function openModal() {
+                const parts = DataModule.getCurrentParts();
+                if (!parts || parts.length === 0) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'No Parts Available',
+                        text: 'Please select an equipment with defined parts first.'
+                    });
+                    return;
+                }
+
+                partSelect.innerHTML = '<option value="">Select Part...</option>' + 
+                    parts.map(p => `<option value="${p.part_id}">${p.part_name}</option>`).join('');
+                
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                document.body.classList.add('modal-active');
+                setTimeout(() => modal.classList.add('modal-active'), 10);
+            }
+
+            function closeModal() {
+                modal.classList.remove('modal-active');
+                setTimeout(() => {
+                    modal.classList.add('opacity-0', 'pointer-events-none');
+                    document.body.classList.remove('modal-active');
+                    form.reset();
+                }, 200);
+            }
+
+            function handleSubmit(e) {
+                e.preventDefault();
+                const partId = partSelect.value;
+                const partName = partSelect.options[partSelect.selectedIndex].text;
+                
+                if (!partId) return;
+
+                const reading = {
+                    part_name: partName,
+                    phase: document.getElementById('manual-phase').value,
+                    fluid: document.getElementById('manual-fluid').value,
+                    design_code: document.getElementById('manual-design-code').value,
+                    type: document.getElementById('manual-type').value,
+                    spec: document.getElementById('manual-spec').value,
+                    grade: document.getElementById('manual-grade').value,
+                    insulation: document.getElementById('manual-insulation').value,
+                    design_temp: document.getElementById('manual-design-temp').value,
+                    design_pressure: document.getElementById('manual-design-press').value,
+                    operating_temp: document.getElementById('manual-temp').value,
+                    operating_pressure: document.getElementById('manual-press').value
+                };
+
+                DataModule.fillTable([reading]);
+                closeModal();
+                
+                // Enable save button
+                const saveBtn = document.getElementById('save-db-btn');
+                if(saveBtn) saveBtn.disabled = false;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Entry Added',
+                    text: `${partName} updated successfully`,
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            }
+
+            form.addEventListener('submit', handleSubmit);
+
+            return {
+                openModal,
+                closeModal
+            };
+        })();
+
+        // ================================================
         // DATA MODULE
         // ================================================
-
-
-
         const DataModule = (function () {
             const equipmentSelect = document.getElementById('equipment-select');
             const partsContainer = document.getElementById('parts-table-container');
             const exportBtn = document.getElementById('export-excel');
             const uploadLabel = document.getElementById('file-upload-label');
-            const saveBtn = document.getElementById('save-db');
+            const saveBtn = document.getElementById('save-db-btn');
+            const manualEntryBtn = document.getElementById('manual-entry-btn'); // Add this
 
             let equipmentDataCache = [];
             let currentEquipId = null;
             let currentParts = [];
 
+            function refreshTableWithAuthStatus() {
+                if (!currentParts || currentParts.length === 0) return;
+                
+                const currentUser = AuthModule.getCurrentUser();
+                const isAdmin = currentUser && currentUser.role === 'admin';
+                
+                // Get current equipment data
+                const selectedOption = equipmentSelect.options[equipmentSelect.selectedIndex];
+                const equipData = equipmentDataCache.find(e => e.equipment_id == currentEquipId);
+                const designCode = equipData ? equipData.design_code : '';
+                
+                // Re-render table with current auth status
+                renderTable(currentParts, designCode);
+            }
 
-
-            // Add this function to your DataModule
-function refreshTableWithAuthStatus() {
-    if (!currentParts || currentParts.length === 0) return;
-    
-    const currentUser = AuthModule.getCurrentUser();
-    const isAdmin = currentUser && currentUser.role === 'admin';
-    
-    // Get current equipment data
-    const selectedOption = equipmentSelect.options[equipmentSelect.selectedIndex];
-    const equipData = equipmentDataCache.find(e => e.equipment_id == currentEquipId);
-    const designCode = equipData ? equipData.design_code : '';
-    
-    // Re-render table with current auth status
-    renderTable(currentParts, designCode);
-}
-
-            /**
-             * Load equipment list from API
-             */
             async function loadEquipment() {
                 try {
                     const res = await fetch('http://localhost:3000/api/equipment')
@@ -1450,9 +1547,6 @@ function refreshTableWithAuthStatus() {
                 }
             }
 
-            /**
-             * Initialize data module
-             */
             function init() {
                 loadEquipment();
                 equipmentSelect.addEventListener('change', handleEquipmentChange);
@@ -1460,12 +1554,12 @@ function refreshTableWithAuthStatus() {
                 saveBtn.addEventListener('click', saveToDatabase);
             }
 
-            /**
-             * Handle equipment selection change
-             */
             async function handleEquipmentChange(e) {
                 currentEquipId = e.target.value;
-                if (!currentEquipId) return;
+                if (!currentEquipId) {
+                    manualEntryBtn.disabled = true;
+                    return;
+                }
 
                 exportBtn.disabled = true;
                 uploadLabel.classList.add('hidden');
@@ -1483,6 +1577,7 @@ function refreshTableWithAuthStatus() {
                         renderTable(currentParts, designCode);
                         uploadLabel.classList.remove('hidden');
                         exportBtn.disabled = false;
+                        manualEntryBtn.disabled = false; // Enable manual entry
                         document.getElementById('upload-placeholder').innerHTML =
                             '<p class="font-semibold text-slate-600 text-lg">Ready to Upload</p>';
                     }
@@ -1491,314 +1586,245 @@ function refreshTableWithAuthStatus() {
                 }
             }
 
-            /**
-             * Render parts data table
-             */
             function renderTable(parts, designCode) {
-    // Check if user is admin
-    const currentUser = AuthModule.getCurrentUser();
-    const isAdmin = currentUser && currentUser.role === 'admin';
-    
-    
-    // === ADD THIS ===
-    // Update the badge in the UI
-    const gridStatusElement = document.querySelector('.card-header .badge');
-    if (gridStatusElement) {
-        if (isAdmin) {
-            gridStatusElement.textContent = 'Editable Grid';
-            gridStatusElement.className = 'badge badge-info';
-        } else {
-            gridStatusElement.textContent = 'Read-Only View';
-            gridStatusElement.className = 'badge badge-secondary';
-        }
-    }            
-
-    let html = `
-        <table class="parts-table">
-            <thead>
-                <tr>
-                    <th rowspan="2">PART</th>
-                    <th rowspan="2">PHASE</th>
-                    <th rowspan="2">FLUID</th>
-                    <th rowspan="2">DESIGN CODE</th>
-                    <th colspan="3">MATERIAL</th>
-                    <th rowspan="2">INSUL</th>
-                    <th colspan="2">DESIGN</th>
-                    <th colspan="2">OPERATING</th>
-                </tr>
-                <tr>
-                    <th>TYPE</th>
-                    <th>SPEC</th>
-                    <th>GRADE</th>
-                    <th>TEMP</th>
-                    <th>PRESS</th>
-                    <th>TEMP</th>
-                    <th>PRESS</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    parts.forEach(p => {
-        const readonlyAttr = isAdmin ? '' : 'readonly';
-        
-        html += `
-            <tr data-part="${p.part_name.toLowerCase()}" data-id="${p.part_id}">
-                <td class="part-name-cell font-bold text-left">${p.part_name}</td>
-                <td><input data-f="phase" placeholder="-" ${readonlyAttr}></td>
-                <td><input data-f="fluid" placeholder="-" ${readonlyAttr}></td>
-                <td><input data-f="design_code" value="${designCode || ''}" placeholder="-" 
-                    class="${designCode ? 'ai-filled' : ''}" ${readonlyAttr}></td>
-                <td><input data-f="type" placeholder="-" ${readonlyAttr}></td>
-                <td><input data-f="spec" placeholder="-" ${readonlyAttr}></td>
-                <td><input data-f="grade" placeholder="-" ${readonlyAttr}></td>
-                <td><input data-f="insulation" placeholder="-" ${readonlyAttr}></td>
-                <td><input type="number" step="0.01" data-f="design_temp" placeholder="-" ${readonlyAttr}></td>
-                <td><input type="number" step="0.01" data-f="design_pressure" placeholder="-" ${readonlyAttr}></td>
-                <td><input type="number" step="0.01" data-f="operating_temp" placeholder="-" ${readonlyAttr}></td>
-                <td><input type="number" step="0.01" data-f="operating_pressure" placeholder="-" ${readonlyAttr}></td>
-            </tr>
-        `;
-    });
-
-    partsContainer.innerHTML = html + '</tbody></table>';
-
-    // Only add input event listeners for admin users
-    if (isAdmin) {
-        partsContainer.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', () => {
-                input.parentElement.classList.remove('ai-filled');
-                input.parentElement.classList.add('user-edited');
-            });
-        });
-    }
-}
-
-            /**
-             * Fill table with extracted data
-             */
-            function fillTable(readings) {
-    const currentUser = AuthModule.getCurrentUser();
-    const isAdmin = currentUser && currentUser.role === 'admin';
-    const readonlyAttr = isAdmin ? '' : 'readonly';
-    
-    readings.forEach(reading => {
-        const row = document.querySelector(`tr[data-part="${reading.part_name.toLowerCase()}"]`);
-        if (row) {
-            for (const [key, value] of Object.entries(reading)) {
-                const input = row.querySelector(`input[data-f="${key}"]`);
-                if (input && value != null && value !== "" && input.value === "") {
-                    input.value = value;
-                    input.parentElement.classList.add('ai-filled');
-                    
-                    // Update readonly attribute based on current user
-                    if (!isAdmin) {
-                        input.setAttribute('readonly', true);
+                const currentUser = AuthModule.getCurrentUser();
+                const isAdmin = currentUser && currentUser.role === 'admin';
+                
+                const gridStatusElement = document.getElementById('grid-status-badge');
+                if (gridStatusElement) {
+                    if (isAdmin) {
+                        gridStatusElement.textContent = 'Editable Grid';
+                        gridStatusElement.className = 'badge badge-info';
                     } else {
-                        input.removeAttribute('readonly');
+                        gridStatusElement.textContent = 'Read-Only View';
+                        gridStatusElement.className = 'badge badge-secondary';
+                    }
+                }                
+
+                let html = `
+                    <table class="parts-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">PART</th>
+                                <th rowspan="2">PHASE</th>
+                                <th rowspan="2">FLUID</th>
+                                <th rowspan="2">DESIGN CODE</th>
+                                <th colspan="3">MATERIAL</th>
+                                <th rowspan="2">INSUL</th>
+                                <th colspan="2">DESIGN</th>
+                                <th colspan="2">OPERATING</th>
+                            </tr>
+                            <tr>
+                                <th>TYPE</th>
+                                <th>SPEC</th>
+                                <th>GRADE</th>
+                                <th>TEMP</th>
+                                <th>PRESS</th>
+                                <th>TEMP</th>
+                                <th>PRESS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                parts.forEach(p => {
+                    const readonlyAttr = isAdmin ? '' : 'readonly';
+                    
+                    html += `
+                        <tr data-part="${p.part_name.toLowerCase()}" data-id="${p.part_id}">
+                            <td class="part-name-cell font-bold text-left">${p.part_name}</td>
+                            <td><input data-f="phase" placeholder="-" ${readonlyAttr}></td>
+                            <td><input data-f="fluid" placeholder="-" ${readonlyAttr}></td>
+                            <td><input data-f="design_code" value="${designCode || ''}" placeholder="-" 
+                                class="${designCode ? 'ai-filled' : ''}" ${readonlyAttr}></td>
+                            <td><input data-f="type" placeholder="-" ${readonlyAttr}></td>
+                            <td><input data-f="spec" placeholder="-" ${readonlyAttr}></td>
+                            <td><input data-f="grade" placeholder="-" ${readonlyAttr}></td>
+                            <td><input data-f="insulation" placeholder="-" ${readonlyAttr}></td>
+                            <td><input type="number" step="0.01" data-f="design_temp" placeholder="-" ${readonlyAttr}></td>
+                            <td><input type="number" step="0.01" data-f="design_pressure" placeholder="-" ${readonlyAttr}></td>
+                            <td><input type="number" step="0.01" data-f="operating_temp" placeholder="-" ${readonlyAttr}></td>
+                            <td><input type="number" step="0.01" data-f="operating_pressure" placeholder="-" ${readonlyAttr}></td>
+                        </tr>
+                    `;
+                });
+
+                partsContainer.innerHTML = html + '</tbody></table>';
+
+                if (isAdmin) {
+                    partsContainer.querySelectorAll('input').forEach(input => {
+                        input.addEventListener('input', () => {
+                            input.parentElement.classList.remove('ai-filled');
+                            input.parentElement.classList.add('user-edited');
+                            saveBtn.disabled = false;
+                        });
+                    });
+                }
+            }
+
+            function fillTable(readings) {
+                const currentUser = AuthModule.getCurrentUser();
+                const isAdmin = currentUser && currentUser.role === 'admin';
+                
+                readings.forEach(reading => {
+                    const row = document.querySelector(`tr[data-part="${reading.part_name.toLowerCase()}"]`);
+                    if (row) {
+                        for (const [key, value] of Object.entries(reading)) {
+                            const input = row.querySelector(`input[data-f="${key}"]`);
+                            if (input) { // Allow overwrite even if value exists for manual entry
+                                input.value = value;
+                                input.parentElement.classList.add('ai-filled');
+                                
+                                if (!isAdmin) {
+                                    input.setAttribute('readonly', true);
+                                } else {
+                                    input.removeAttribute('readonly');
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function exportToExcel() {
+                const wb = XLSX.utils.book_new();
+                const selectedOption = equipmentSelect.options[equipmentSelect.selectedIndex];
+                const currentUser = AuthModule.getCurrentUser();
+                const inspectorName = currentUser ? currentUser.username : 'Guest User';
+                const reportDate = new Date();
+                
+                const equipText = selectedOption.text;
+                const equipNo = equipText.includes(' - ') ? equipText.split(' - ')[0] : equipText;
+                const equipDesc = equipText.includes(' - ') ? equipText.split(' - ')[1] : '';
+                const designCode = document.querySelector('input[data-f="design_code"]')?.value || '-';
+
+                const blackBorder = {
+                    top: { style: "thin", color: { rgb: "000000" } },
+                    bottom: { style: "thin", color: { rgb: "000000" } },
+                    left: { style: "thin", color: { rgb: "000000" } },
+                    right: { style: "thin", color: { rgb: "000000" } }
+                };
+
+                const styles = {
+                    mainTitle: {
+                        font: { bold: true, color: { rgb: "DC2626" }, sz: 16 },
+                        alignment: { horizontal: "left", vertical: "center" }
+                    },
+                    sectionHeader: {
+                        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+                        fill: { fgColor: { rgb: "1E293B" } }, 
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: blackBorder
+                    },
+                    metaLabel: {
+                        font: { bold: true, color: { rgb: "475569" }, sz: 10 },
+                        fill: { fgColor: { rgb: "F1F5F9" } }, 
+                        alignment: { horizontal: "right", vertical: "center" },
+                        border: blackBorder
+                    },
+                    metaValue: {
+                        font: { color: { rgb: "000000" }, sz: 10, bold: true },
+                        fill: { fgColor: { rgb: "FFFFFF" } },
+                        alignment: { horizontal: "left", vertical: "center", indent: 1 },
+                        border: blackBorder
+                    },
+                    tableHeader: {
+                        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+                        fill: { fgColor: { rgb: "DC2626" } }, 
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: blackBorder 
+                    },
+                    cellPart: {
+                        font: { bold: true, color: { rgb: "1E293B" } },
+                        fill: { fgColor: { rgb: "F8FAFC" } }, 
+                        alignment: { horizontal: "left", vertical: "center", indent: 1 },
+                        border: blackBorder 
+                    },
+                    cellData: {
+                        font: { color: { rgb: "000000" } },
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: blackBorder 
+                    }
+                };
+
+                let data = [
+                    ["iPETRO INSPECTION REPORT"], 
+                    [""], 
+                    ["EQUIPMENT DETAILS", "", "", "", "", "", "INSPECTION DETAILS", "", "", "", "", ""], 
+                    ["Equipment No", equipNo, "", "", "", "", "Inspector", inspectorName, "", "", "", ""],
+                    ["Description", equipDesc, "", "", "", "", "Date", reportDate.toLocaleDateString(), "", "", "", ""],
+                    ["Design Code", designCode, "", "", "", "", "Time", reportDate.toLocaleTimeString(), "", "", "", ""],
+                    [""], 
+                    ["PART", "PHASE", "FLUID", "DESIGN CODE", "TYPE", "SPEC", "GRADE", "INSUL", "D.TEMP", "D.PRESS", "O.TEMP", "O.PRESS"]
+                ];
+
+                const rows = document.querySelectorAll('.parts-table tbody tr');
+                rows.forEach(tr => {
+                    const partName = tr.querySelector('.part-name-cell').innerText;
+                    const rowData = [partName];
+
+                    tr.querySelectorAll('input').forEach(input => {
+                        let val = input.value || '-';
+                        const isNumeric = ['design_temp', 'design_pressure', 'operating_temp', 'operating_pressure'].includes(input.dataset.f);
+                        if (isNumeric && val !== '-' && val !== '') val = parseFloat(val);
+                        rowData.push(val);
+                    });
+                    data.push(rowData);
+                });
+
+                const ws = XLSX.utils.aoa_to_sheet(data);
+
+                ws['!cols'] = [
+                    { wch: 25 }, 
+                    { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 10 }, { wch: 12 }, 
+                    { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 } 
+                ];
+
+                ws['!merges'] = [
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: 11 } }, 
+                    { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } }, 
+                    { s: { r: 3, c: 1 }, e: { r: 3, c: 5 } }, 
+                    { s: { r: 4, c: 1 }, e: { r: 4, c: 5 } }, 
+                    { s: { r: 5, c: 1 }, e: { r: 5, c: 5 } }, 
+                    { s: { r: 2, c: 6 }, e: { r: 2, c: 11 } }, 
+                    { s: { r: 3, c: 7 }, e: { r: 3, c: 11 } }, 
+                    { s: { r: 4, c: 7 }, e: { r: 4, c: 11 } }, 
+                    { s: { r: 5, c: 7 }, e: { r: 5, c: 11 } }, 
+                ];
+
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+                        
+                        if (!ws[cellRef]) ws[cellRef] = { v: "", t: "s" }; 
+
+                        if (R === 0) ws[cellRef].s = styles.mainTitle;
+                        else if (R === 2) {
+                            if ((C >= 0 && C <= 5) || (C >= 6 && C <= 11)) {
+                                ws[cellRef].s = styles.sectionHeader;
+                            }
+                        }
+                        else if (R >= 3 && R <= 5) {
+                            if (C === 0 || C === 6) ws[cellRef].s = styles.metaLabel;
+                            else if ((C >= 1 && C <= 5) || (C >= 7 && C <= 11)) ws[cellRef].s = styles.metaValue;
+                        }
+                        else if (R === 7) {
+                            ws[cellRef].s = styles.tableHeader;
+                        }
+                        else if (R > 7) {
+                            if (C === 0) ws[cellRef].s = styles.cellPart;
+                            else ws[cellRef].s = styles.cellData;
+                        }
                     }
                 }
-            }
-        }
-    });
-}
 
- /**
- * PRO-TIER EXCEL EXPORT (HIGH CONTRAST BORDERS)
- * Features: Dark borders applied to BOTH tables for maximum visibility.
- */
-/**
- * PRO-TIER EXCEL EXPORT (FIXED BLACK BORDERS)
- * Features: Pure Black (000000) grid lines applied to ALL tables.
- */
-function exportToExcel() {
-    // 1. GATHER DATA
-    const wb = XLSX.utils.book_new();
-    const selectedOption = equipmentSelect.options[equipmentSelect.selectedIndex];
-    const currentUser = AuthModule.getCurrentUser();
-    const inspectorName = currentUser ? currentUser.username : 'Guest User';
-    const reportDate = new Date();
-    
-    // Parse Equipment Info
-    const equipText = selectedOption.text;
-    const equipNo = equipText.includes(' - ') ? equipText.split(' - ')[0] : equipText;
-    const equipDesc = equipText.includes(' - ') ? equipText.split(' - ')[1] : '';
-    const designCode = document.querySelector('input[data-f="design_code"]')?.value || '-';
-
-    // 2. DEFINE STYLES
-    // We define a standard BLACK border object to use everywhere
-    const blackBorder = {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        left: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } }
-    };
-
-    const styles = {
-        // Main Title
-        mainTitle: {
-            font: { bold: true, color: { rgb: "DC2626" }, sz: 16 },
-            alignment: { horizontal: "left", vertical: "center" }
-        },
-        
-        // --- METADATA SECTION STYLES ---
-        sectionHeader: {
-            font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
-            fill: { fgColor: { rgb: "1E293B" } }, // Dark Slate
-            alignment: { horizontal: "center", vertical: "center" },
-            border: blackBorder
-        },
-        metaLabel: {
-            font: { bold: true, color: { rgb: "475569" }, sz: 10 },
-            fill: { fgColor: { rgb: "F1F5F9" } }, // Light Slate
-            alignment: { horizontal: "right", vertical: "center" },
-            border: blackBorder
-        },
-        metaValue: {
-            font: { color: { rgb: "000000" }, sz: 10, bold: true },
-            fill: { fgColor: { rgb: "FFFFFF" } },
-            alignment: { horizontal: "left", vertical: "center", indent: 1 },
-            border: blackBorder
-        },
-
-        // --- MAIN DATA TABLE STYLES ---
-        // 1. The Red Header Row (PART, PHASE, FLUID...)
-        tableHeader: {
-            font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
-            fill: { fgColor: { rgb: "DC2626" } }, // Red Brand Color
-            alignment: { horizontal: "center", vertical: "center" },
-            border: blackBorder // <--- Forces black border around red headers
-        },
-        // 2. The First Column (Part Names)
-        cellPart: {
-            font: { bold: true, color: { rgb: "1E293B" } },
-            fill: { fgColor: { rgb: "F8FAFC" } }, // Very light gray
-            alignment: { horizontal: "left", vertical: "center", indent: 1 },
-            border: blackBorder // <--- Forces black border around part names
-        },
-        // 3. The Data Cells (Temperatures, Pressures, etc)
-        cellData: {
-            font: { color: { rgb: "000000" } },
-            alignment: { horizontal: "center", vertical: "center" },
-            border: blackBorder // <--- Forces black border around data
-        }
-    };
-
-    // 3. BUILD DATA STRUCTURE
-    let data = [
-        ["iPETRO INSPECTION REPORT"], 
-        [""], 
-        
-        // R2: Section Headers
-        ["EQUIPMENT DETAILS", "", "", "", "", "", "INSPECTION DETAILS", "", "", "", "", ""], 
-        
-        // R3: Data Row 1
-        ["Equipment No", equipNo, "", "", "", "", "Inspector", inspectorName, "", "", "", ""],
-        
-        // R4: Data Row 2
-        ["Description", equipDesc, "", "", "", "", "Date", reportDate.toLocaleDateString(), "", "", "", ""],
-        
-        // R5: Data Row 3
-        ["Design Code", designCode, "", "", "", "", "Time", reportDate.toLocaleTimeString(), "", "", "", ""],
-        
-        [""], // Spacer
-        
-        // R7: Main Table Header
-        ["PART", "PHASE", "FLUID", "DESIGN CODE", "TYPE", "SPEC", "GRADE", "INSUL", "D.TEMP", "D.PRESS", "O.TEMP", "O.PRESS"]
-    ];
-
-    // 4. APPEND TABLE DATA
-    const rows = document.querySelectorAll('.parts-table tbody tr');
-    rows.forEach(tr => {
-        const partName = tr.querySelector('.part-name-cell').innerText;
-        const rowData = [partName];
-
-        tr.querySelectorAll('input').forEach(input => {
-            let val = input.value || '-';
-            const isNumeric = ['design_temp', 'design_pressure', 'operating_temp', 'operating_pressure'].includes(input.dataset.f);
-            if (isNumeric && val !== '-' && val !== '') val = parseFloat(val);
-            rowData.push(val);
-        });
-        data.push(rowData);
-    });
-
-    const ws = XLSX.utils.aoa_to_sheet(data);
-
-    // 5. DEFINE COLUMN WIDTHS
-    ws['!cols'] = [
-        { wch: 25 }, // Col 0: Labels/PartName
-        { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 10 }, { wch: 12 }, // Middle
-        { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 } // End
-    ];
-
-    // 6. DEFINE MERGES
-    ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 11 } }, // Title
-        
-        // Equipment Block (Left)
-        { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } }, // Header
-        { s: { r: 3, c: 1 }, e: { r: 3, c: 5 } }, // Value 1
-        { s: { r: 4, c: 1 }, e: { r: 4, c: 5 } }, // Value 2
-        { s: { r: 5, c: 1 }, e: { r: 5, c: 5 } }, // Value 3
-
-        // Inspection Block (Right)
-        { s: { r: 2, c: 6 }, e: { r: 2, c: 11 } }, // Header
-        { s: { r: 3, c: 7 }, e: { r: 3, c: 11 } }, // Value 1
-        { s: { r: 4, c: 7 }, e: { r: 4, c: 11 } }, // Value 2
-        { s: { r: 5, c: 7 }, e: { r: 5, c: 11 } }, // Value 3
-    ];
-
-    // 7. APPLY STYLES LOOP
-    const range = XLSX.utils.decode_range(ws['!ref']);
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-            const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-            
-            // Ensure cell exists even if empty so border applies
-            if (!ws[cellRef]) ws[cellRef] = { v: "", t: "s" }; 
-
-            // -- Title --
-            if (R === 0) ws[cellRef].s = styles.mainTitle;
-
-            // -- Metadata Headers (Row 2) --
-            else if (R === 2) {
-                if ((C >= 0 && C <= 5) || (C >= 6 && C <= 11)) {
-                    ws[cellRef].s = styles.sectionHeader;
-                }
+                XLSX.utils.book_append_sheet(wb, ws, "Inspection Data");
+                const filename = `Inspection_${selectedOption.text.replace(/[^a-z0-9]/gi, '_')}_${reportDate.toISOString().slice(0,10)}.xlsx`;
+                XLSX.writeFile(wb, filename);
             }
 
-            // -- Metadata Values (Rows 3-5) --
-            else if (R >= 3 && R <= 5) {
-                // Labels
-                if (C === 0 || C === 6) ws[cellRef].s = styles.metaLabel;
-                // Values
-                else if ((C >= 1 && C <= 5) || (C >= 7 && C <= 11)) ws[cellRef].s = styles.metaValue;
-            }
-
-            // -- Main Grid Header (Row 7) --
-            else if (R === 7) {
-                ws[cellRef].s = styles.tableHeader;
-            }
-
-            // -- Data Rows (Row 8+) --
-            else if (R > 7) {
-                if (C === 0) ws[cellRef].s = styles.cellPart;
-                else ws[cellRef].s = styles.cellData;
-            }
-        }
-    }
-
-    // 8. WRITE FILE
-    XLSX.utils.book_append_sheet(wb, ws, "Inspection Data");
-    const filename = `Inspection_${selectedOption.text.replace(/[^a-z0-9]/gi, '_')}_${reportDate.toISOString().slice(0,10)}.xlsx`;
-    XLSX.writeFile(wb, filename);
-}
-
-            /**
-             * Save data to database
-             */
             async function saveToDatabase() {
-             // Check if user is logged in
                 const currentUser = AuthModule.getCurrentUser();
                 if (!currentUser) {
                     Swal.fire({
@@ -1810,7 +1836,7 @@ function exportToExcel() {
                     });
                     return;
                 }
-                                const readings = [];
+                const readings = [];
 
                 document.querySelectorAll('.parts-table tbody tr').forEach(tr => {
                     const reading = {
@@ -1862,8 +1888,8 @@ function exportToExcel() {
                             icon: 'success',
                             timer: 2000,
                             showConfirmButton: false,
-                            position: 'top-end',
                             toast: true,
+                            position: 'top-end',
                             background: '#D1FAE5',
                             color: '#166534'
                         });
@@ -1880,13 +1906,10 @@ function exportToExcel() {
                     });
                 }
 
-                saveBtn.textContent = "Push to DB";
+                saveBtn.textContent = "Save";
                 saveBtn.disabled = false;
             }
 
-            /**
-             * Get current parts list
-             */
             function getCurrentParts() {
                 return currentParts;
             }
@@ -1894,37 +1917,36 @@ function exportToExcel() {
             return {
                 init: init,
                 fillTable: fillTable,
-                getCurrentParts: getCurrentParts
+                getCurrentParts: getCurrentParts,
+                refreshTableWithAuthStatus: refreshTableWithAuthStatus
             };
         })();
 
         // ================================================
         // APPLICATION INITIALIZATION
         // ================================================
-   // In your application initialization:
-document.addEventListener('DOMContentLoaded', async function () {
-    await AuthModule.init();  // Wait for auth to complete
-    SidebarModule.init();
-    DataModule.init();
-    PDFModule.init();
-    
-    // Check if we need to re-render any existing table
-    setTimeout(() => {
-        const gridStatusBadge = document.getElementById('grid-status-badge');
-        if (gridStatusBadge) {
-            const currentUser = AuthModule.getCurrentUser();
-            const isAdmin = currentUser && currentUser.role === 'admin';
+        document.addEventListener('DOMContentLoaded', async function () {
+            await AuthModule.init(); 
+            SidebarModule.init();
+            DataModule.init();
+            PDFModule.init();
             
-            if (isAdmin) {
-                gridStatusBadge.textContent = 'Editable Grid';
-                gridStatusBadge.className = 'badge badge-info';
-            } else {
-                gridStatusBadge.textContent = 'Read-Only View';
-                gridStatusBadge.className = 'badge badge-secondary';
-            }
-        }
-    }, 500);
-});
+            setTimeout(() => {
+                const gridStatusBadge = document.getElementById('grid-status-badge');
+                if (gridStatusBadge) {
+                    const currentUser = AuthModule.getCurrentUser();
+                    const isAdmin = currentUser && currentUser.role === 'admin';
+                    
+                    if (isAdmin) {
+                        gridStatusBadge.textContent = 'Editable Grid';
+                        gridStatusBadge.className = 'badge badge-info';
+                    } else {
+                        gridStatusBadge.textContent = 'Read-Only View';
+                        gridStatusBadge.className = 'badge badge-secondary';
+                    }
+                }
+            }, 500);
+        });
     </script>
 </body>
 

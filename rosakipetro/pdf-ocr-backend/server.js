@@ -55,6 +55,11 @@ const adminOnly = (req, res, next) => {
 };
 
 // --- PROTECTED PAGE ROUTES ---
+// NEW: Dashboard Route
+app.get('/dashboard.html', protect, (req, res) => {
+    res.sendFile(path.join(__dirname, 'private', 'dashboard.html'));
+});
+
 app.get('/test.html', protect, (req, res) => {
     res.sendFile(path.join(__dirname, 'private', 'test.html'));
 });
@@ -93,7 +98,7 @@ app.use('/auth', authRoutes);
 // --- ROOT ROUTE ---
 app.get('/', (req, res) => {
     if (req.session.user) {
-        return res.redirect('/test.html');
+        return res.redirect('/dashboard.html'); // Redirect to dashboard on login
     }
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });

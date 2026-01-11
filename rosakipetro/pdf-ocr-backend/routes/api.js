@@ -9,6 +9,7 @@ const equipmentController = require('../controllers/EquipmentController');
 const inspectionController = require('../controllers/InspectionController');
 const adminController = require('../controllers/AdminController');
 const userController = require('../controllers/UserController');
+const dashboardController = require('../controllers/dashboardController');
 
 /**
  * API Routes
@@ -71,6 +72,10 @@ const profileUpload = multer({
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
+// --- DASHBOARD ROUTES ---
+router.get('/dashboard/stats', dashboardController.getDashboardStats);
+router.get('/dashboard/export-master', dashboardController.exportMasterData);
+
 // --- EQUIPMENT ROUTES ---
 router.get('/equipment', equipmentController.getEquipment);
 router.get('/equipment-list', equipmentController.getEquipmentList);
@@ -85,6 +90,7 @@ router.get('/inspection-details/:id', inspectionController.getInspectionDetails)
 router.get('/inspection-plan/:id', inspectionController.getInspectionPlan);
 router.post('/save-data', inspectionController.saveData);
 router.post('/extract-data', inspectionController.extractData);
+router.delete('/inspection/:id', inspectionController.deleteInspection);
 
 // --- ADMIN USER MANAGEMENT ROUTES ---
 router.get('/admin/users', adminController.getAllUsers);
