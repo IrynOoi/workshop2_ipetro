@@ -1,4 +1,3 @@
-<!-- //test.html -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -937,6 +936,10 @@
                             </svg>
                         </button>
                         <div class="w-px h-5 bg-slate-600 mx-2"></div>
+                        <button id="process-page-btn"
+                            class="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider px-3 py-1 rounded-lg hover:bg-white/10 transition-all">
+                            Scan Page
+                        </button>
                         <button id="process-all-btn"
                             class="text-xs font-bold text-blue-400 hover:text-blue-300 uppercase tracking-wider px-3 py-1 rounded-lg hover:bg-white/10 transition-all">
                             Scan All
@@ -1122,30 +1125,30 @@
 
             function updateUserUI() {
                 if (!currentUser) return;
-    
+     
                 const userInitials = document.querySelector('.w-10.h-10.rounded-full');
                 if (userInitials) {
                     userInitials.textContent = currentUser.username.substring(0, 2).toUpperCase();
                 }
-    
+     
                 const userNameElement = document.querySelector('.user-info-text .text-sm');
                 if (userNameElement) {
                     userNameElement.textContent = currentUser.username;
                 }
-    
+     
                 const saveBtn = document.getElementById('save-db-btn');
                 if (saveBtn) {
-                     // Allow all authenticated users to see the save button
-                     saveBtn.style.display = 'flex';
+                      // Allow all authenticated users to see the save button
+                      saveBtn.style.display = 'flex';
                 }
-    
+     
                 // Refresh table auth state
                 setTimeout(() => {
                     if (window.DataModule && typeof window.DataModule.refreshTableWithAuthStatus === 'function') {
                         window.DataModule.refreshTableWithAuthStatus();
                     }
                 }, 100);
-    
+     
                 // Show admin section for admin users
                 if (currentUser.role === 'admin') {
                     const adminSection = document.getElementById('admin-section');
@@ -1158,7 +1161,7 @@
                         btn.style.display = 'none';
                     });
                 }
-    
+     
                 console.log('User UI updated:', currentUser.username, '(' + currentUser.role + ')');
             }
 
@@ -1280,6 +1283,7 @@
                 document.getElementById('prev-page').onclick = previousPage;
                 document.getElementById('next-page').onclick = nextPage;
                 document.getElementById('process-all-btn').addEventListener('click', processAllPages);
+                document.getElementById('process-page-btn').addEventListener('click', processCurrentPage); // Added this
             }
 
             function handleFileUpload() {
@@ -1338,6 +1342,12 @@
                 if (pageNum < pdfDoc.numPages) renderPage(pageNum + 1);
             }
 
+            // New function to scan the currently visible page
+            function processCurrentPage() {
+                if (!pdfDoc) return;
+                renderPage(pageNum, true); // Re-render with auto=true to trigger OCR
+            }
+
             async function processAllPages() {
                 if (!pdfDoc) return;
 
@@ -1353,7 +1363,7 @@
                 loadingInd.classList.add('hidden');
 
                 Swal.fire({
-                    ...CONFIG.SWAL_OPTIONS,
+                    // FIXED: Removed ...CONFIG.SWAL_OPTIONS for toast compatibility
                     title: 'Scan Complete',
                     text: `Processed ${pdfDoc.numPages} pages successfully.`,
                     icon: 'success',
@@ -1390,7 +1400,8 @@
 
                 try {
                     const parts = DataModule.getCurrentParts();
-                    const res = await fetch('http://localhost:3000/api/extract-data', {
+                    // Changed from absolute http://localhost:3000 to relative path
+                    const res = await fetch('/api/extract-data', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -1402,12 +1413,32 @@
                     if (res.success) {
                         DataModule.fillTable(res.data.readings);
                         saveBtn.disabled = false;
+                        
+                        // Show success toast for single page scan
+                        if(!isBatch && res.data.readings.length > 0) {
+                             Swal.fire({
+                                icon: 'success',
+                                title: 'Data Extracted',
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
+                        }
                     }
                 } catch (e) {
                     console.error('OCR Error:', e);
+                    if (!isBatch) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'OCR Failed',
+                            text: 'Could not extract data. Check backend logs.'
+                        });
+                    }
                 }
 
                 if (!isBatch) loadingInd.classList.add('hidden');
+                // Always dispatch this event so batch processing doesn't get stuck
                 if (isBatch) document.dispatchEvent(new Event('page-done'));
             }
 
@@ -1532,7 +1563,8 @@
 
             async function loadEquipment() {
                 try {
-                    const res = await fetch('http://localhost:3000/api/equipment')
+                    // Changed to relative URL for consistency
+                    const res = await fetch('/api/equipment')
                         .then(r => r.json());
 
                     if (res.success) {
@@ -1569,7 +1601,8 @@
                     const equipData = equipmentDataCache.find(e => e.equipment_id == currentEquipId);
                     const designCode = equipData ? equipData.design_code : '';
 
-                    const res = await fetch(`http://localhost:3000/api/equipment-parts/${currentEquipId}`)
+                    // Changed to relative URL
+                    const res = await fetch(`/api/equipment-parts/${currentEquipId}`)
                         .then(r => r.json());
 
                     if (res.success) {
@@ -1599,7 +1632,7 @@
                         gridStatusElement.textContent = 'Read-Only View';
                         gridStatusElement.className = 'badge badge-secondary';
                     }
-                }                
+                }                 
 
                 let html = `
                     <table class="parts-table">
@@ -1633,18 +1666,18 @@
                     html += `
                         <tr data-part="${p.part_name.toLowerCase()}" data-id="${p.part_id}">
                             <td class="part-name-cell font-bold text-left">${p.part_name}</td>
-                            <td><input data-f="phase" placeholder="-" ${readonlyAttr}></td>
-                            <td><input data-f="fluid" placeholder="-" ${readonlyAttr}></td>
-                            <td><input data-f="design_code" value="${designCode || ''}" placeholder="-" 
+                            <td><input name="phase_${p.part_id}" aria-label="Phase for ${p.part_name}" data-f="phase" placeholder="-" ${readonlyAttr}></td>
+                            <td><input name="fluid_${p.part_id}" aria-label="Fluid for ${p.part_name}" data-f="fluid" placeholder="-" ${readonlyAttr}></td>
+                            <td><input name="design_code_${p.part_id}" aria-label="Design Code for ${p.part_name}" data-f="design_code" value="${designCode || ''}" placeholder="-" 
                                 class="${designCode ? 'ai-filled' : ''}" ${readonlyAttr}></td>
-                            <td><input data-f="type" placeholder="-" ${readonlyAttr}></td>
-                            <td><input data-f="spec" placeholder="-" ${readonlyAttr}></td>
-                            <td><input data-f="grade" placeholder="-" ${readonlyAttr}></td>
-                            <td><input data-f="insulation" placeholder="-" ${readonlyAttr}></td>
-                            <td><input type="number" step="0.01" data-f="design_temp" placeholder="-" ${readonlyAttr}></td>
-                            <td><input type="number" step="0.01" data-f="design_pressure" placeholder="-" ${readonlyAttr}></td>
-                            <td><input type="number" step="0.01" data-f="operating_temp" placeholder="-" ${readonlyAttr}></td>
-                            <td><input type="number" step="0.01" data-f="operating_pressure" placeholder="-" ${readonlyAttr}></td>
+                            <td><input name="type_${p.part_id}" aria-label="Type for ${p.part_name}" data-f="type" placeholder="-" ${readonlyAttr}></td>
+                            <td><input name="spec_${p.part_id}" aria-label="Spec for ${p.part_name}" data-f="spec" placeholder="-" ${readonlyAttr}></td>
+                            <td><input name="grade_${p.part_id}" aria-label="Grade for ${p.part_name}" data-f="grade" placeholder="-" ${readonlyAttr}></td>
+                            <td><input name="insulation_${p.part_id}" aria-label="Insulation for ${p.part_name}" data-f="insulation" placeholder="-" ${readonlyAttr}></td>
+                            <td><input name="design_temp_${p.part_id}" aria-label="Design Temp for ${p.part_name}" type="number" step="0.01" data-f="design_temp" placeholder="-" ${readonlyAttr}></td>
+                            <td><input name="design_pressure_${p.part_id}" aria-label="Design Pressure for ${p.part_name}" type="number" step="0.01" data-f="design_pressure" placeholder="-" ${readonlyAttr}></td>
+                            <td><input name="operating_temp_${p.part_id}" aria-label="Operating Temp for ${p.part_name}" type="number" step="0.01" data-f="operating_temp" placeholder="-" ${readonlyAttr}></td>
+                            <td><input name="operating_pressure_${p.part_id}" aria-label="Operating Pressure for ${p.part_name}" type="number" step="0.01" data-f="operating_pressure" placeholder="-" ${readonlyAttr}></td>
                         </tr>
                     `;
                 });
@@ -1663,6 +1696,12 @@
             }
 
             function fillTable(readings) {
+                // FIXED: Added safety check to prevent "forEach of undefined" error
+                if (!readings || !Array.isArray(readings)) {
+                    console.warn("fillTable called with invalid data:", readings);
+                    return;
+                }
+
                 const currentUser = AuthModule.getCurrentUser();
                 const isAdmin = currentUser && currentUser.role === 'admin';
                 
@@ -1868,7 +1907,8 @@
                 const inspectorName = currentUser ? currentUser.username : 'Anonymous';
 
                 try {
-                    const res = await fetch('http://localhost:3000/api/save-data', {
+                    // Changed to relative URL
+                    const res = await fetch('/api/save-data', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -1882,7 +1922,7 @@
 
                     if (res.success) {
                         Swal.fire({
-                            ...CONFIG.SWAL_OPTIONS,
+                            // FIXED: Removed ...CONFIG.SWAL_OPTIONS for toast compatibility
                             title: 'Saved to Database',
                             text: 'Inspection records have been successfully logged.',
                             icon: 'success',

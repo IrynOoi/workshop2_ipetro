@@ -3,25 +3,19 @@ const path = require('path');
 const dotenv = require('dotenv');
 
 // --- SECURE API KEY LOADING ---
-// 1. Try default location (root of where node runs)
 dotenv.config();
-
-// 2. Try specific path mentioned by user (Grandparent folder relative to this controller)
 if (!process.env.GEMINI_API_KEY) {
     const parentEnvPath = path.resolve(__dirname, '../../.env');
     dotenv.config({ path: parentEnvPath });
 }
 
-// Ensure node-fetch is available
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-
 /**
  * Dashboard Controller
- * Handles analytics and statistical calculations for the system dashboard
+ * Handles analytics, live feeds, and reporting
  */
 
 /**
- * Get aggregated dashboard statistics
+ * Get aggregated dashboard statistics (Live Feed & Leaderboard included)
  * @route GET /api/dashboard/stats
  */
 exports.getDashboardStats = async (req, res) => {
@@ -95,25 +89,46 @@ exports.getDashboardStats = async (req, res) => {
             ORDER BY 2 ASC
         `);
 
-        // 5. Recent Critical Findings (Parts causing high risk)
-        const criticalFindingsQuery = await db.query(`
-            WITH LatestInspections AS (
-                SELECT DISTINCT ON (equipment_id) 
-                    inspection_id
-                FROM inspection 
-                ORDER BY equipment_id, inspected_at DESC
-            )
-            SELECT 
-                e.equipment_no,
-                ip.part_name,
-                ip.current_risk_rating,
-                i.inspected_at
-            FROM inspection_part ip
-            JOIN inspection i ON ip.inspection_id = i.inspection_id
-            JOIN LatestInspections li ON i.inspection_id = li.inspection_id
+        // 5. LIVE ACTIVITY FEED (Union of Inspections and New Equipment)
+        const activityFeedQuery = await db.query(`
+            (SELECT 
+                'inspection' as type,
+                u.full_name as actor_name,
+                u.profile_picture as actor_avatar,
+                e.equipment_no as target,
+                i.created_at as timestamp,
+                i.inspection_id as id
+            FROM inspection i
+            LEFT JOIN users u ON i.inspector_id = u.user_id
             JOIN equipment e ON i.equipment_id = e.equipment_id
-            WHERE ip.current_risk_rating IN ('HIGH', 'MEDIUM HIGH')
-            ORDER BY i.inspected_at DESC
+            WHERE i.created_at >= NOW() - INTERVAL '30 days')
+            
+            UNION ALL
+            
+            (SELECT 
+                'equipment' as type,
+                'System Admin' as actor_name,
+                NULL as actor_avatar,
+                equipment_no as target,
+                created_at as timestamp,
+                equipment_id as id
+            FROM equipment
+            WHERE created_at >= NOW() - INTERVAL '30 days')
+            
+            ORDER BY timestamp DESC
+            LIMIT 10
+        `);
+
+        // 6. INSPECTOR LEADERBOARD (Top 5 active users)
+        const leaderboardQuery = await db.query(`
+            SELECT 
+                u.full_name, 
+                u.profile_picture, 
+                COUNT(i.inspection_id) as total_inspections
+            FROM users u
+            JOIN inspection i ON u.user_id = i.inspector_id
+            GROUP BY u.user_id, u.full_name, u.profile_picture
+            ORDER BY total_inspections DESC
             LIMIT 5
         `);
 
@@ -138,7 +153,8 @@ exports.getDashboardStats = async (req, res) => {
                 },
                 risk_dist: riskData,
                 trends: inspectionTrendQuery.rows,
-                critical_items: criticalFindingsQuery.rows
+                activity_feed: activityFeedQuery.rows,
+                leaderboard: leaderboardQuery.rows
             }
         });
 

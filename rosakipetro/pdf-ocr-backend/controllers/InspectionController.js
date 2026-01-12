@@ -411,7 +411,7 @@ exports.extractData = async (req, res) => {
             Extract these values (apply to ALL parts):
             1. **Fluid:** (from 'Fluid Name' or 'Medium')
             2. **Phase:** (Infer from Fluid. e.g., "Vent Gas" -> "Gas")
-            3. **Insulation:** (from 'Insulations' row)
+            3. **Insulation:** (from 'Insulations' row) only Yes or No = NIL in drawing
             4. **Design Code:** (from 'Design Code' row)
             5. **Design Pressure:** (from "Pressure" under "Design", convert Bar to MPa by x 0.1)
             6. **Design Temperature:** (from "Temperature" under "Design")
@@ -453,7 +453,7 @@ exports.extractData = async (req, res) => {
         `;
 
 
-        const apiKey = "";
+        const apiKey = process.env.GOOGLE_API_KEY ;
         const MODEL_NAME = "gemini-2.5-flash";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${apiKey}`;
 

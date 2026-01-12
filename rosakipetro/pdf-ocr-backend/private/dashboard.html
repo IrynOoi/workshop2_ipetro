@@ -4,13 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iPETRO - Analytics Dashboard</title>
+    <title>iPETRO - Live Analytics</title>
 
     <!-- External Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
@@ -24,13 +23,13 @@
 
         body {
             font-family: 'DM Sans', sans-serif;
-            background-color: #F3F4F6;
+            background-color: #F8FAFC;
         }
 
         /* Sidebar Styles */
         #sidebar {
             background: linear-gradient(180deg, var(--color-slate-900) 0%, var(--color-slate-800) 100%);
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s ease;
         }
 
         .sidebar-link {
@@ -67,29 +66,40 @@
             color: #64748B;
         }
 
-        /* Chart Containers */
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
-        
+        /* Chart & Card Styles */
         .stat-card {
-            transition: transform 0.2s;
+            transition: all 0.2s;
         }
-        
         .stat-card:hover {
             transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        /* Markdown Styles */
-        .prose h3 { font-size: 1.1rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; color: #1E293B; }
-        .prose ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
-        .prose li { margin-bottom: 0.25rem; }
-        .prose p { margin-bottom: 0.75rem; line-height: 1.6; }
-        .prose strong { color: #DC2626; font-weight: 600; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
 
-        /* Excel Button */
+        /* Master Table */
+        .master-table th {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            background-color: #F8FAFC;
+        }
+        
         .btn-excel {
             background: linear-gradient(135deg, #10B981 0%, #059669 100%);
             color: white;
@@ -110,7 +120,6 @@
             backdrop-filter: blur(4px);
             z-index: 40;
         }
-        
         #mobile-overlay.active {
             display: block;
         }
@@ -125,33 +134,9 @@
                 transform: translateX(-100%);
                 width: 280px;
             }
-            
             #sidebar.mobile-open {
                 transform: translateX(0);
             }
-        }
-        
-        /* Master Table Specifics */
-        .master-table th {
-            white-space: nowrap;
-            background-color: #F8FAFC;
-            color: #64748B;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid #E2E8F0;
-        }
-        .master-table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid #F1F5F9;
-            color: #334155;
-            vertical-align: middle;
-            white-space: nowrap;
-        }
-        .master-table tr:last-child td {
-            border-bottom: none;
         }
     </style>
 </head>
@@ -162,7 +147,7 @@
     <div id="mobile-overlay"></div>
 
     <!-- Mobile Toggle Button -->
-    <button id="toggle-sidebar-btn" class="md:hidden fixed top-4 left-4 z-50 bg-slate-900 text-white p-3 rounded-xl shadow-xl hover:bg-slate-800 transition-all">
+    <button id="toggle-sidebar-btn" class="md:hidden fixed top-4 left-4 z-50 bg-slate-900 text-white p-2.5 rounded-lg shadow-xl hover:bg-slate-800 transition-all">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
         </svg>
@@ -171,15 +156,15 @@
     <!-- Sidebar -->
     <aside id="sidebar" class="text-white flex flex-col h-full shrink-0 w-64 shadow-xl z-20">
         <!-- Logo -->
-        <div class="h-20 flex items-center px-6 shrink-0 border-b border-white/10">
+        <div class="h-20 flex items-center px-6 shrink-0 border-b border-white/10 bg-black/10">
             <div class="flex items-center gap-3">
-                <svg width="40" height="40" viewBox="0 0 100 100" fill="none" class="shrink-0 drop-shadow-xl">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" class="shrink-0 drop-shadow-lg">
                     <path d="M50 10 L85 30 L85 70 L50 90 L50 10 Z" fill="#DC2626"/>
                     <path d="M50 10 L15 30 L15 70 L50 90 L50 10 Z" fill="#475569" opacity="0.8"/>
                 </svg>
                 <div class="flex flex-col">
-                    <span class="font-bold text-xl tracking-tight leading-tight">iPETRO</span>
-                    <span class="text-[10px] font-bold text-red-400 tracking-widest uppercase">Analytics</span>
+                    <span class="font-bold text-lg tracking-tight leading-tight">iPETRO</span>
+                    <span class="text-[10px] font-bold text-red-400 tracking-widest uppercase">Live View</span>
                 </div>
             </div>
         </div>
@@ -234,126 +219,184 @@
                 </div>
                 <div class="user-info-text overflow-hidden flex-1">
                     <div class="text-sm font-semibold text-white truncate user-name">Loading...</div>
-                    <div class="text-[11px] text-emerald-400 flex items-center gap-2 font-medium mt-0.5">
+                    <div class="text-[11px] text-emerald-400 flex items-center gap-1.5 font-medium mt-0.5">
                         <span class="relative flex h-2 w-2">
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                         </span>
-                        System Online
+                        Online
                     </div>
                 </div>
             </div>
             
-            <button onclick="AuthModule.logout()" class="btn btn-primary w-full shadow-lg flex items-center justify-center gap-2 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                <span class="relative z-10">Logout</span>
+            <button onclick="AuthModule.logout()" class="w-full py-2 text-xs font-bold uppercase tracking-wider text-red-300 hover:text-white hover:bg-red-900/30 rounded-lg transition-colors">
+                Log Out
             </button>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+    <div class="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50">
         
         <!-- Header -->
-        <header class="h-20 bg-white/80 backdrop-blur border-b border-slate-200 flex items-center justify-between px-8 shrink-0 z-10">
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 lg:px-8 shrink-0 z-10 sticky top-0 shadow-sm/50">
             <div>
-                <h1 class="text-xl font-bold text-slate-900 tracking-tight">System Analytics</h1>
-                <p class="text-xs text-slate-500 mt-0.5">Real-time inspection data overview</p>
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight">System Analytics</h1>
+                <p class="text-[11px] text-slate-500 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                    Live Dashboard
+                </p>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="h-8 w-px bg-slate-200"></div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-medium text-slate-400">Last updated:</span>
-                    <span id="last-updated" class="text-xs font-bold text-slate-700">Just now</span>
-                    <button onclick="Dashboard.refresh()" class="ml-2 p-2 hover:bg-slate-100 rounded-full transition-colors" title="Refresh Data">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                    </button>
-                </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-400 font-mono" id="last-updated">Updating...</span>
+                <button onclick="Dashboard.refresh()" class="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors" title="Force Refresh">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
             </div>
         </header>
 
         <!-- Scrollable Content -->
-        <main class="flex-1 overflow-auto p-8">
+        <main class="flex-1 overflow-auto p-4 lg:p-8">
             
-            <!-- KPI Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <!-- Total Equipment -->
-                <div class="stat-card bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Total Equipment</h3>
-                        <div class="p-2 bg-blue-50 rounded-lg">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            <div class="grid grid-cols-12 gap-6">
+                
+                <!-- LEFT COLUMN (Stats & Charts) -->
+                <div class="col-span-12 xl:col-span-8 space-y-6">
+                    
+                    <!-- KPI Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <!-- Total Equipment -->
+                        <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-slate-200 group">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Assets</h3>
+                                <div class="p-2 bg-slate-50 group-hover:bg-red-50 rounded-lg transition-colors">
+                                    <svg class="w-5 h-5 text-slate-400 group-hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                                </div>
+                            </div>
+                            <div class="flex items-baseline gap-2">
+                                <span id="kpi-equip" class="text-3xl font-bold text-slate-900">-</span>
+                                <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Active</span>
+                            </div>
+                        </div>
+
+                        <!-- Total Inspections -->
+                        <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-slate-200 group">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Inspections</h3>
+                                <div class="p-2 bg-slate-50 group-hover:bg-blue-50 rounded-lg transition-colors">
+                                    <svg class="w-5 h-5 text-slate-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                </div>
+                            </div>
+                            <div class="flex items-baseline gap-2">
+                                <span id="kpi-insp" class="text-3xl font-bold text-slate-900">-</span>
+                                <span class="text-xs text-slate-400">Total Records</span>
+                            </div>
+                        </div>
+
+                        <!-- High Risk -->
+                        <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-slate-200 group">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Critical Risk</h3>
+                                <div class="p-2 bg-slate-50 group-hover:bg-orange-50 rounded-lg transition-colors">
+                                    <svg class="w-5 h-5 text-slate-400 group-hover:text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                </div>
+                            </div>
+                            <div class="flex items-baseline gap-2">
+                                <span id="kpi-risk" class="text-3xl font-bold text-slate-900">-</span>
+                                <span class="text-xs font-bold text-orange-500">Alerts</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex items-baseline gap-2">
-                        <span id="kpi-equip" class="text-3xl font-bold text-slate-900">-</span>
-                        <span class="text-xs text-green-600 font-medium bg-green-50 px-2 py-0.5 rounded-full">Active</span>
-                    </div>
-                </div>
 
-                <!-- Total Inspections -->
-                <div class="stat-card bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Inspections</h3>
-                        <div class="p-2 bg-purple-50 rounded-lg">
-                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    <!-- Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Trend Chart -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="text-sm font-bold text-slate-700 mb-6">Activity Volume</h3>
+                            <div class="relative h-64 w-full">
+                                <canvas id="trendChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Risk Chart -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="text-sm font-bold text-slate-700 mb-6">Risk Profile</h3>
+                            <div class="relative h-64 w-full flex justify-center">
+                                <canvas id="riskChart"></canvas>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex items-baseline gap-2">
-                        <span id="kpi-insp" class="text-3xl font-bold text-slate-900">-</span>
-                        <span class="text-xs text-slate-500 font-medium">Lifetime records</span>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Charts Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <!-- Risk Distribution -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="text-sm font-bold text-slate-700 mb-6">Equipment Risk Profile</h3> <!-- Updated Title -->
-                    <div class="chart-container flex justify-center">
-                        <canvas id="riskChart"></canvas>
+                    <!-- Master List -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-gray-50/50">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Master Equipment</h3>
+                                <p class="text-xs text-slate-500">Overview of all tracked assets</p>
+                            </div>
+                            <button onclick="Dashboard.exportMasterfile()" class="btn-excel px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                <span>Export Excel</span>
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto max-h-[400px]">
+                            <table class="w-full text-sm text-left master-table">
+                                <thead class="sticky top-0 z-10 bg-slate-50 text-slate-500 shadow-sm">
+                                    <tr>
+                                        <th class="border-b py-3 px-4">No.</th>
+                                        <th class="border-b py-3 px-4">Tag No.</th>
+                                        <th class="border-b py-3 px-4">Description</th>
+                                        <th class="border-b py-3 px-4 text-center">Risk</th>
+                                        <th class="border-b py-3 px-4 text-center">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="master-list" class="divide-y divide-slate-100 bg-white">
+                                    <!-- Populated by JS -->
+                                    <tr><td colspan="5" class="px-6 py-8 text-center text-gray-400 italic">Loading data...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Inspection Trends -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="text-sm font-bold text-slate-700 mb-6">Monthly Inspection Activity</h3>
-                    <div class="chart-container">
-                        <canvas id="trendChart"></canvas>
+                <!-- RIGHT COLUMN (Live Feed) -->
+                <div class="col-span-12 xl:col-span-4 space-y-6">
+                    
+                    <!-- Inspector Leaderboard -->
+                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg border border-slate-700 p-6 relative overflow-hidden text-white">
+                        <div class="absolute top-0 right-0 p-4 opacity-10">
+                            <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.633-.761l-.367-3.418-2.666-1.066V17a1 1 0 001 1h2a1 1 0 110 2H8a1 1 0 110-2h2a1 1 0 001-1v-5.698L8.333 10.27l-.367 3.418a1 1 0 01-.633.761A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                        </div>
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 relative z-10">Top Performers</h3>
+                        <div id="leaderboard-list" class="space-y-4 relative z-10">
+                            <!-- Populated by JS -->
+                            <div class="animate-pulse flex space-x-4 opacity-50">
+                                <div class="rounded-full bg-slate-600 h-10 w-10"></div>
+                                <div class="flex-1 space-y-2 py-1">
+                                  <div class="h-2 bg-slate-600 rounded"></div>
+                                  <div class="h-2 bg-slate-600 rounded w-3/4"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- MASTER EQUIPMENT LIST (NEW SECTION) -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-gray-50">
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Master Equipment Register</h3>
-                        <p class="text-xs text-slate-500">Live analytics of all asset components</p>
+                    <!-- Live Activity Feed -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-[600px]">
+                        <div class="p-5 border-b border-slate-100 bg-slate-50/50">
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
+                                <span class="relative flex h-2 w-2">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                                </span>
+                                Live Activity Feed
+                            </h3>
+                        </div>
+                        <div id="activity-feed" class="flex-1 overflow-y-auto p-5 space-y-6">
+                            <!-- Populated by JS -->
+                            <div class="text-center text-slate-400 text-sm mt-10">Connecting to feed...</div>
+                        </div>
                     </div>
-                    <button onclick="Dashboard.exportMasterfile()" class="btn-excel px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        <span>Export Excel</span>
-                    </button>
-                </div>
-                <div class="overflow-x-auto max-h-[500px]">
-                    <table class="w-full text-sm text-left master-table">
-                        <thead class="sticky top-0 z-10 bg-slate-100 shadow-sm">
-                            <!-- Minimized Header -->
-                            <tr class="bg-slate-50 text-slate-600">
-                                <th class="border-b py-3 px-4">NO.</th>
-                                <th class="border-b py-3 px-4">EQUIPMENT NO.</th>
-                                <th class="border-b py-3 px-4">PMT NO.</th>
-                                <th class="border-b py-3 px-4">EQUIPMENT DESCRIPTION</th>
-                                <th class="border-b py-3 px-4 text-center">RISK</th>
-                                <th class="border-b py-3 px-4 text-center">LAST INSP.</th>
-                            </tr>
-                        </thead>
-                        <tbody id="master-list" class="divide-y divide-slate-100 bg-white">
-                            <tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">Loading Masterfile...</td></tr>
-                        </tbody>
-                    </table>
+
                 </div>
             </div>
 
@@ -362,8 +405,6 @@
 
     <!-- Scripts -->
     <script>
-        const apiKey = ""; // Runtime provided key
-
         // ================================================
         // AUTHENTICATION MODULE
         // ================================================
@@ -372,17 +413,13 @@
 
             async function initAuth() {
                 try {
-                    const res = await fetch('/auth/me', {
-                        credentials: 'include'
-                    });
-                    
+                    const res = await fetch('/auth/me', { credentials: 'include' });
                     const data = await res.json();
                     
                     if (data.isAuthenticated && data.user) {
                         currentUser = data.user;
                         updateUserUI();
                     } else {
-                        console.log('Not authenticated - server will handle redirect');
                         window.location.href = '/';
                     }
                 } catch (error) {
@@ -403,7 +440,6 @@
                     userNameElement.textContent = currentUser.username;
                 }
                 
-                // Show admin section for admin users
                 if (currentUser.role === 'admin') {
                     const adminSection = document.getElementById('admin-section');
                     const usersLink = document.getElementById('users-link');
@@ -415,37 +451,26 @@
             async function logout() {
                 const result = await Swal.fire({
                     title: 'Logout?',
-                    text: "Are you sure you want to end your session?",
+                    text: "End your session?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#DC2626',
                     cancelButtonColor: '#475569',
-                    confirmButtonText: 'Yes, logout',
-                    cancelButtonText: 'Cancel'
+                    confirmButtonText: 'Yes, logout'
                 });
 
-                if (!result.isConfirmed) return;
-                
-                try {
-                    const response = await fetch('/auth/logout', {
-                        method: 'POST',
-                        credentials: 'include'
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        window.location.href = data.redirect || '/';
+                if (result.isConfirmed) {
+                    try {
+                        const response = await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+                        const data = await response.json();
+                        if (data.success) window.location.href = data.redirect || '/';
+                    } catch (error) {
+                        console.error('Logout error:', error);
                     }
-                } catch (error) {
-                    console.error('Logout error:', error);
                 }
             }
 
-            return {
-                init: initAuth,
-                logout: logout
-            };
+            return { init: initAuth, logout: logout };
         })();
 
         // ================================================
@@ -454,19 +479,14 @@
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('mobile-overlay');
         const toggleBtn = document.getElementById('toggle-sidebar-btn');
-        const desktopToggle = document.getElementById('desktop-toggle-btn');
 
         function toggleSidebar() {
             if (window.innerWidth <= 768) {
                 sidebar.classList.toggle('mobile-open');
                 overlay.classList.toggle('active');
-            } else {
-                sidebar.classList.toggle('collapsed');
             }
         }
-
         if(toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
-        if(desktopToggle) desktopToggle.addEventListener('click', toggleSidebar);
         if(overlay) overlay.addEventListener('click', toggleSidebar);
 
         // ================================================
@@ -475,12 +495,15 @@
         const Dashboard = (function() {
             let riskChartInstance = null;
             let trendChartInstance = null;
-            let currentData = null; // Store fetched data for AI use
-            let masterDataCache = null; // Store master data
+            let currentData = null;
+            let masterDataCache = null;
 
             async function fetchData() {
                 try {
-                    // Fetch Stats
+                    // Update Timestamp UI
+                    const now = new Date();
+                    document.getElementById('last-updated').textContent = "Updated " + now.toLocaleTimeString();
+
                     const response = await fetch('/api/dashboard/stats', { credentials: 'include' });
                     const result = await response.json();
                     
@@ -489,68 +512,150 @@
                         updateUI(result.data);
                     }
 
-                    // Fetch Master Data
+                    // Fetch Master Data for the table
                     fetchMasterData();
                 } catch (error) {
                     console.error('Fetch error:', error);
-                    // Use fallback data if fetch fails
-                    const fallbackData = {
-                        counts: { equipment: 0, inspections: 0, high_risk: 0 },
-                        risk_dist: { labels: ['No Data'], data: [1] },
-                        trends: [],
-                        critical_items: []
-                    };
-                    currentData = fallbackData;
-                    updateUI(fallbackData);
                 }
             }
-            
+
+            function updateUI(data) {
+                // 1. Update KPI Cards
+                document.getElementById('kpi-equip').textContent = data.counts.equipment;
+                document.getElementById('kpi-insp').textContent = data.counts.inspections;
+                document.getElementById('kpi-risk').textContent = data.counts.high_risk;
+
+                // 2. Render Charts
+                renderRiskChart(data.risk_dist);
+                renderTrendChart(data.trends);
+                
+                // 3. Render Leaderboard
+                const lbContainer = document.getElementById('leaderboard-list');
+                if(data.leaderboard && data.leaderboard.length > 0) {
+                    let lbHtml = '';
+                    data.leaderboard.forEach((user, index) => {
+                        const medalColor = index === 0 ? 'text-yellow-400' : (index === 1 ? 'text-slate-300' : 'text-orange-400');
+                        // Use UI Avatars if no profile picture
+                        const img = user.profile_picture || `https://ui-avatars.com/api/?name=${user.full_name}&background=random&color=fff`;
+                        
+                        lbHtml += `
+                        <div class="flex items-center gap-4 bg-white/5 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                            <div class="relative">
+                                <img src="${img}" class="w-10 h-10 rounded-full object-cover border-2 border-slate-600 shadow-md">
+                                <div class="absolute -top-1 -right-1 bg-slate-800 rounded-full p-0.5 shadow-sm border border-slate-600">
+                                    <svg class="w-3 h-3 ${medalColor}" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.633-.761l-.367-3.418-2.666-1.066V17a1 1 0 001 1h2a1 1 0 110 2H8a1 1 0 110-2h2a1 1 0 001-1v-5.698L8.333 10.27l-.367 3.418a1 1 0 01-.633.761A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-white truncate">${user.full_name}</p>
+                                <p class="text-xs text-slate-400 truncate">${user.total_inspections} Inspections</p>
+                            </div>
+                            <div class="text-lg font-bold text-slate-600 opacity-20">#${index + 1}</div>
+                        </div>`;
+                    });
+                    lbContainer.innerHTML = lbHtml;
+                } else {
+                    lbContainer.innerHTML = '<div class="text-center text-slate-500 text-xs py-4">No data available</div>';
+                }
+
+                // 4. Render Activity Feed
+                const feedContainer = document.getElementById('activity-feed');
+                if(data.activity_feed && data.activity_feed.length > 0) {
+                    let feedHtml = '';
+                    data.activity_feed.forEach((item, index) => {
+                        const date = new Date(item.timestamp);
+                        const timeAgo = Math.floor((new Date() - date) / (1000 * 60 * 60 * 24)); 
+                        let timeDisplay = timeAgo === 0 ? 'Today' : `${timeAgo}d ago`;
+                        if(timeAgo === 0) {
+                            // If today, show time
+                            timeDisplay = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        }
+                        
+                        let icon = '';
+                        let content = '';
+                        
+                        if(item.type === 'inspection') {
+                            const avatar = item.actor_avatar || `https://ui-avatars.com/api/?name=${item.actor_name}&background=random`;
+                            icon = `<img src="${avatar}" class="w-8 h-8 rounded-full border border-slate-200 object-cover">`;
+                            content = `
+                                <div class="flex-1">
+                                    <p class="text-xs text-slate-600 leading-relaxed">
+                                        <span class="font-bold text-slate-800">${item.actor_name}</span> inspected 
+                                        <span class="font-mono font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded text-[10px] border border-red-100">${item.target}</span>
+                                    </p>
+                                    <p class="text-[10px] text-slate-400 font-medium mt-1 flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        ${timeDisplay}
+                                    </p>
+                                </div>
+                            `;
+                        } else {
+                            icon = `<div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold border border-blue-100 shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg></div>`;
+                            content = `
+                                <div class="flex-1">
+                                    <p class="text-xs text-slate-600 leading-relaxed">
+                                        New Equipment <span class="font-bold text-slate-800">${item.target}</span> registered
+                                    </p>
+                                    <p class="text-[10px] text-slate-400 font-medium mt-1">${timeDisplay}</p>
+                                </div>
+                            `;
+                        }
+
+                        // Add connecting line unless it's the last item
+                        const line = index !== data.activity_feed.length - 1 ? 
+                            `<div class="absolute left-4 top-8 bottom-0 w-0.5 bg-slate-100 group-hover:bg-slate-200 transition-colors -z-10 h-full mt-2"></div>` : '';
+
+                        feedHtml += `
+                        <div class="relative group">
+                            ${line}
+                            <div class="flex items-start gap-4 mb-2">
+                                ${icon}
+                                ${content}
+                            </div>
+                        </div>`;
+                    });
+                    feedContainer.innerHTML = feedHtml;
+                } else {
+                    feedContainer.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-slate-400 text-sm"><p>No recent activity.</p></div>';
+                }
+            }
+
             async function fetchMasterData() {
                 try {
                     const res = await fetch('/api/dashboard/export-master', { credentials: 'include' });
                     const result = await res.json();
-                    
                     if(result.success) {
                         masterDataCache = result.data;
                         renderMasterTable(result.data);
                     }
-                } catch(e) {
-                    console.error('Master data error:', e);
-                }
+                } catch(e) { console.error(e); }
             }
             
             function renderMasterTable(data) {
                 const tbody = document.getElementById('master-list');
                 if(!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">No master data available.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">No data.</td></tr>';
                     return;
                 }
                 
-                // Aggregate data by equipment to find max risk per equipment
+                // Group by equipment to find max risk per unit
                 const equipmentMap = new Map();
-
                 data.forEach(row => {
                     if (!equipmentMap.has(row.equipment_id)) {
                         equipmentMap.set(row.equipment_id, {
                             equipment_no: row.equipment_no,
-                            pmt_no: row.pmt_no,
                             equipment_desc: row.equipment_desc,
                             inspected_at: row.inspected_at,
                             max_risk_score: 0,
-                            risk_label: 'Not Inspected' // Default
+                            risk_label: 'Not Inspected'
                         });
                     }
-                    
                     const equip = equipmentMap.get(row.equipment_id);
                     const riskScore = getRiskScore(row.current_risk_rating);
-                    
-                    // Only update risk if this part has a higher risk OR if it's the first rated part
                     if (riskScore > equip.max_risk_score) {
                         equip.max_risk_score = riskScore;
                         equip.risk_label = row.current_risk_rating;
-                    } 
-                    // Handle case where risk rating exists but is 'Low' (score 1) and current max is 0 (Not Inspected)
-                    else if (riskScore > 0 && equip.max_risk_score === 0) {
+                    } else if (riskScore > 0 && equip.max_risk_score === 0) {
                         equip.max_risk_score = riskScore;
                         equip.risk_label = row.current_risk_rating;
                     }
@@ -558,32 +663,30 @@
 
                 let counter = 1;
                 let html = '';
-
                 equipmentMap.forEach(equip => {
-                    let riskColor = 'text-slate-400 italic';
+                    let riskColor = 'text-slate-400';
+                    let riskBg = 'bg-slate-50 border-slate-200';
                     const risk = equip.risk_label;
                     
-                    if(risk === 'HIGH') riskColor = 'text-red-600 font-bold bg-red-50 px-2 py-1 rounded border border-red-200';
-                    else if(risk === 'MEDIUM HIGH') riskColor = 'text-orange-600 font-bold bg-orange-50 px-2 py-1 rounded border border-orange-200';
-                    else if(risk === 'MEDIUM') riskColor = 'text-yellow-600 font-bold bg-yellow-50 px-2 py-1 rounded border border-yellow-200';
-                    else if(risk === 'LOW') riskColor = 'text-green-600 font-bold bg-green-50 px-2 py-1 rounded border border-green-200';
+                    if(risk === 'HIGH') { riskColor = 'text-red-700'; riskBg = 'bg-red-50 border-red-200'; }
+                    else if(risk === 'MEDIUM HIGH') { riskColor = 'text-orange-700'; riskBg = 'bg-orange-50 border-orange-200'; }
+                    else if(risk === 'MEDIUM') { riskColor = 'text-yellow-700'; riskBg = 'bg-yellow-50 border-yellow-200'; }
+                    else if(risk === 'LOW') { riskColor = 'text-green-700'; riskBg = 'bg-green-50 border-green-200'; }
 
-                    // Explicitly handle no data
-                    const inspDate = equip.inspected_at ? new Date(equip.inspected_at).toLocaleDateString() : '<span class="text-slate-300 italic">No Data</span>';
-                    const displayRisk = (risk === 'Not Inspected' || !risk) ? '<span class="text-slate-300 italic">No Data</span>' : `<span class="${riskColor} text-[10px] uppercase tracking-wider">${risk}</span>`;
+                    const inspDate = equip.inspected_at ? new Date(equip.inspected_at).toLocaleDateString() : '-';
+                    const displayRisk = (risk === 'Not Inspected' || !risk) ? 
+                        `<span class="text-slate-300 italic text-[10px]">None</span>` : 
+                        `<span class="${riskColor} ${riskBg} font-bold px-2 py-0.5 rounded border text-[10px] uppercase tracking-wide shadow-sm">${risk}</span>`;
 
                     html += `
-                    <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors">
-                        <td class="font-mono text-center text-slate-500 py-4 px-4">${counter++}</td>
-                        <td class="font-bold text-slate-700 py-4 px-4 whitespace-nowrap">${equip.equipment_no}</td>
-                        <td class="font-mono text-xs text-slate-500 py-4 px-4 whitespace-nowrap">${equip.pmt_no}</td>
-                        <td class="text-slate-600 text-sm py-4 px-4 min-w-[200px]">${equip.equipment_desc}</td>
-                        <td class="text-center py-4 px-4 whitespace-nowrap">${displayRisk}</td>
-                        <td class="text-slate-400 text-xs text-center py-4 px-4 font-mono whitespace-nowrap">${inspDate}</td>
-                    </tr>
-                    `;
+                    <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
+                        <td class="text-center text-slate-400 py-3 px-4 font-mono text-xs">${counter++}</td>
+                        <td class="font-bold text-slate-700 py-3 px-4">${equip.equipment_no}</td>
+                        <td class="text-slate-600 py-3 px-4 truncate max-w-[200px]">${equip.equipment_desc}</td>
+                        <td class="text-center py-3 px-4">${displayRisk}</td>
+                        <td class="text-center text-slate-500 py-3 px-4 font-mono text-xs">${inspDate}</td>
+                    </tr>`;
                 });
-
                 tbody.innerHTML = html;
             }
 
@@ -597,62 +700,36 @@
                 return 0;
             }
 
-            function updateUI(data) {
-                // 1. Update KPI Cards
-                document.getElementById('kpi-equip').textContent = data.counts.equipment;
-                document.getElementById('kpi-insp').textContent = data.counts.inspections;
-                
-                // Timestamp
-                const now = new Date();
-                document.getElementById('last-updated').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                // 2. Render Risk Chart (Doughnut)
-                renderRiskChart(data.risk_dist);
-
-                // 3. Render Trend Chart (Bar)
-                renderTrendChart(data.trends);
-            }
-
             function renderRiskChart(distData) {
                 const ctx = document.getElementById('riskChart').getContext('2d');
+                if(riskChartInstance) riskChartInstance.destroy();
                 
-                // Prepare Colors based on Risk Labels
                 const colors = distData.labels.map(label => {
                     const l = label.toUpperCase();
-                    if(l === 'HIGH') return '#EF4444'; // Red
-                    if(l === 'MEDIUM HIGH') return '#F97316'; // Orange
-                    if(l === 'MEDIUM') return '#EAB308'; // Yellow
-                    if(l === 'LOW') return '#22C55E'; // Green
-                    return '#94A3B8'; // Gray (Unrated/Other) - CHANGED from Green default
+                    if(l === 'HIGH') return '#DC2626'; 
+                    if(l === 'MEDIUM HIGH') return '#EA580C'; 
+                    if(l === 'MEDIUM') return '#EAB308'; 
+                    if(l === 'LOW') return '#22C55E'; 
+                    return '#CBD5E1';
                 });
-
-                if(riskChartInstance) riskChartInstance.destroy();
 
                 riskChartInstance = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
                         labels: distData.labels,
-                        datasets: [{
-                            data: distData.data,
-                            backgroundColor: colors,
-                            borderWidth: 0,
-                            hoverOffset: 4
-                        }]
+                        datasets: [{ data: distData.data, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: { position: 'right' }
-                        },
-                        cutout: '70%'
+                        plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } },
+                        cutout: '75%'
                     }
                 });
             }
 
             function renderTrendChart(trendData) {
                 const ctx = document.getElementById('trendChart').getContext('2d');
-                
                 if(trendChartInstance) trendChartInstance.destroy();
 
                 trendChartInstance = new Chart(ctx, {
@@ -663,19 +740,18 @@
                             label: 'Inspections',
                             data: trendData.map(d => d.count),
                             backgroundColor: '#3B82F6',
-                            borderRadius: 4
+                            borderRadius: 4,
+                            barThickness: 24
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         scales: {
-                            y: { beginAtZero: true, grid: { borderDash: [2, 4] } },
-                            x: { grid: { display: false } }
+                            y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#f1f5f9' }, ticks: { font: { size: 10 } } },
+                            x: { grid: { display: false }, ticks: { font: { size: 10 } } }
                         },
-                        plugins: {
-                            legend: { display: false }
-                        }
+                        plugins: { legend: { display: false } }
                     }
                 });
             }
@@ -820,10 +896,10 @@
                 XLSX.writeFile(wb, `IPETRO_Masterfile_${new Date().toISOString().slice(0,10)}.xlsx`);
             }
 
-            return {
-                refresh: fetchData,
-                exportMasterfile: exportMasterfile
-            };
+            // Auto-refresh every 30 seconds
+            setInterval(fetchData, 30000);
+
+            return { refresh: fetchData, exportMasterfile: exportMasterfile };
         })();
 
         // Init
