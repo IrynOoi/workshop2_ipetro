@@ -85,6 +85,8 @@ router.put('/edit-equipment/:id', equipmentUpload.single('image'), equipmentCont
 router.delete('/delete-equipment/:equipment_id', equipmentController.deleteEquipment);
 
 // --- INSPECTION ROUTES ---
+
+router.post('/update-inspection-details', inspectionController.updateInspectionDetails);
 router.get('/inspection-history', inspectionController.getInspectionHistory);
 router.get('/inspection-details/:id', inspectionController.getInspectionDetails);
 router.get('/inspection-plan/:id', inspectionController.getInspectionPlan);

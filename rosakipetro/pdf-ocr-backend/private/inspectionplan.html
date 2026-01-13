@@ -12,6 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
     <!-- ADDED: Excel Export Library -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
     <style>
@@ -1074,6 +1075,10 @@ select.risk-dropdown:not([disabled]) {
                         <span class="relative z-10" id="edit-btn-text">Enable Edit</span>
                     </button>
 
+
+
+
+
                     <button id="ppt-button" onclick="triggerPPTExport()" class="btn btn-warning shadow-md">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
@@ -1118,6 +1123,7 @@ select.risk-dropdown:not([disabled]) {
         // ================================================
         // GLOBAL CONFIGURATION
         // ================================================
+        let signaturePad = null;
         const CONFIG = {
             SWAL_OPTIONS: {
                 heightAuto: false,
@@ -1134,6 +1140,9 @@ select.risk-dropdown:not([disabled]) {
         /**
          * Toggle edit mode for the report
          * Handles permission checks, UI updates, and placeholder text management.
+         */
+ /**
+         * Toggle edit mode for the report
          */
         function toggleEditMode() {
             // 1. Permission Check
@@ -1157,6 +1166,10 @@ select.risk-dropdown:not([disabled]) {
             
             // 2. Toggle State
             isEditMode = !isEditMode;
+            
+            // Get UI References (Safe checks included)
+            const saveBtn = document.getElementById('save-btn'); 
+            const clearSigBtn = document.getElementById('clear-sig-btn');
             const editBtnText = document.getElementById('edit-btn-text');
             const indicator = document.getElementById('edit-mode-indicator');
             const editableElements = document.querySelectorAll('[data-editable="true"]');
@@ -1165,40 +1178,48 @@ select.risk-dropdown:not([disabled]) {
             const notesPlaceholder = '<span class="text-gray-400 italic placeholder-text">No specific observations recorded.</span>';
             const recsPlaceholder = '<span class="text-gray-400 italic placeholder-text">No recommendations provided.</span>';
 
-            // 3. Toggle Risk Dropdowns
+            // 3. Toggle Risk Dropdowns & Buttons
             const riskDropdowns = document.querySelectorAll('.risk-dropdown');
-            riskDropdowns.forEach(select => {
-                if (isEditMode) {
-                    select.removeAttribute('disabled');
-                } else {
-                    select.setAttribute('disabled', 'true');
-                }
-            });
-
+            
+            // Common Logic for "Active" vs "Inactive"
             if (isEditMode) {
-                // ============================================
-                // ENABLE EDIT MODE
-                // ============================================
-                editBtnText.textContent = 'Disable Edit';
-                indicator.classList.add('active');
+                // --- ACTIVATING EDIT MODE ---
                 
+                // Enable Dropdowns
+                riskDropdowns.forEach(select => select.removeAttribute('disabled'));
+
+                // Show Save Button (IF it exists)
+                if (saveBtn) saveBtn.classList.remove('hidden');
+
+                // Show Clear Signature Button (IF it exists)
+                if (clearSigBtn) clearSigBtn.style.display = 'inline-block';
+
+                // Enable Signature Pad (IF it exists)
+                if (signaturePad) signaturePad.on();
+
+                // Update Edit Button Text
+                if (editBtnText) editBtnText.textContent = 'Disable Edit';
+                
+                // Show Screen Indicator
+                if (indicator) indicator.classList.add('active');
+                
+                // Enable Text Fields
                 editableElements.forEach(el => {
                     el.setAttribute('contenteditable', 'true');
                     
-                    // CLEANUP: If the field currently holds a placeholder, wipe it clean for typing
+                    // Clear placeholders if present
                     const text = el.textContent.trim();
                     const hasPlaceholder = el.querySelector('.placeholder-text');
                     
-                    // Check specific IDs to ensure we only clear the text areas, not table data
-                    if (el.id === 'notes-field' && (hasPlaceholder || text.includes('No specific observations') || text.includes('Click "Enable Edit"'))) {
-                        el.innerHTML = ''; // Clear for fresh input
+                    if (el.id === 'notes-field' && (hasPlaceholder || text.includes('No specific observations'))) {
+                        el.innerHTML = ''; 
                     } 
-                    else if (el.id === 'recs-field' && (hasPlaceholder || text.includes('No recommendations') || text.includes('Click "Enable Edit"'))) {
-                        el.innerHTML = ''; // Clear for fresh input
+                    else if (el.id === 'recs-field' && (hasPlaceholder || text.includes('No recommendations'))) {
+                        el.innerHTML = ''; 
                     }
                 });
                 
-                // Enable validation listeners for numeric fields
+                // Enable numeric validation
                 addValidationListeners();
                 
                 Swal.fire({
@@ -1215,17 +1236,32 @@ select.risk-dropdown:not([disabled]) {
                 });
 
             } else {
-                // ============================================
-                // DISABLE EDIT MODE (SAVE/VIEW STATE)
-                // ============================================
-                editBtnText.textContent = 'Enable Edit';
-                indicator.classList.remove('active');
+                // --- DEACTIVATING EDIT MODE ---
                 
+                // Disable Dropdowns
+                riskDropdowns.forEach(select => select.setAttribute('disabled', 'true'));
+
+                // Hide Save Button (IF it exists)
+                if (saveBtn) saveBtn.classList.add('hidden');
+
+                // Hide Clear Signature Button (IF it exists)
+                if (clearSigBtn) clearSigBtn.style.display = 'none';
+
+                // Disable Signature Pad
+                if (signaturePad) signaturePad.off();
+
+                // Update Edit Button Text
+                if (editBtnText) editBtnText.textContent = 'Enable Edit';
+                
+                // Hide Screen Indicator
+                if (indicator) indicator.classList.remove('active');
+                
+                // Disable Text Fields
                 editableElements.forEach(el => {
                     el.setAttribute('contenteditable', 'false');
                     el.classList.remove('editable-invalid', 'editable-valid');
                     
-                    // RESTORE: If the user left a field empty, put back the professional placeholder
+                    // Restore placeholders if empty
                     const text = el.textContent.trim();
                     
                     if (text === '') {
@@ -1234,9 +1270,8 @@ select.risk-dropdown:not([disabled]) {
                         } else if (el.id === 'recs-field') {
                             el.innerHTML = recsPlaceholder;
                         } else {
-                            // For standard table cells, revert to a dash to keep the table structure
                             el.textContent = '-'; 
-                            // Update risk rating if this was a temp/pressure field that got cleared
+                            // Update risk rating if table cell cleared
                             if(el.dataset.validation) {
                                 updateRiskRatingForRow(el);
                             }
@@ -1244,31 +1279,101 @@ select.risk-dropdown:not([disabled]) {
                     }
                 });
                 
-                // Disable validation listeners
+                // Remove listeners
                 removeValidationListeners();
             }
         }
-
         // Add these helper functions for validation
-        function addValidationListeners() {
-            // Add input validation for temperature and pressure fields
+function addValidationListeners() {
+            // Select all fields that have data-validation attributes (Temp & Pressure)
             const tempPressureFields = document.querySelectorAll('[data-validation]');
+            
             tempPressureFields.forEach(field => {
+                // 1. Existing Input & Blur Listeners (Keep these for calculations)
                 field.addEventListener('input', validateNumericField);
                 field.addEventListener('blur', validateNumericRange);
+                
+                // Store value on focus
                 field.addEventListener('focus', () => {
-                    // Store original value on focus
                     if (!field.dataset.originalValue) {
                         field.dataset.originalValue = field.textContent.trim();
                     }
                 });
-                // Add input event for immediate risk rating update
+
+                // Update Risk on input
                 field.addEventListener('input', function() {
-                    // Debounce the risk rating update
                     clearTimeout(this.riskUpdateTimeout);
                     this.riskUpdateTimeout = setTimeout(() => {
                         updateRiskRatingForRow(this);
                     }, 300);
+                });
+
+                // -------------------------------------------------------------
+                // 2. NEW: Block Invalid Keystrokes (Letters, Symbols)
+                // -------------------------------------------------------------
+                field.addEventListener('keydown', function(e) {
+                    // Allowed keys: Backspace(8), Tab(9), Enter(13), Escape(27), Delete(46), 
+                    // Arrows(37-40), Home(36), End(35)
+                    const allowedKeys = [8, 9, 13, 27, 46, 37, 38, 39, 40, 36, 35];
+                    
+                    // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                    if (allowedKeys.includes(e.keyCode) || (e.ctrlKey && [65, 67, 86, 88].includes(e.keyCode))) {
+                        return; 
+                    }
+
+                    // Check numeric keys (Top row 48-57, Numpad 96-105)
+                    const isNumber = (e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105);
+                    
+                    // Check decimal point (190, 110)
+                    const isDecimal = (e.keyCode === 190 || e.keyCode === 110);
+                    
+                    // Check negative sign (189, 109)
+                    const isNegative = (e.keyCode === 189 || e.keyCode === 109);
+
+                    // Prevent second decimal point
+                    const currentText = field.textContent;
+                    if (isDecimal && currentText.includes('.')) {
+                        e.preventDefault(); 
+                        return;
+                    }
+
+                    // Prevent negative sign if Minimum value is 0 or greater (e.g. Pressure)
+                    // Or if a negative sign already exists
+                    if (isNegative) {
+                         if (parseFloat(field.dataset.min) >= 0 || currentText.includes('-')) {
+                             e.preventDefault();
+                             return;
+                         }
+                    }
+
+                    // If it's not a number, decimal, or allowed negative, BLOCK IT
+                    if (!isNumber && !isDecimal && !isNegative) {
+                        e.preventDefault(); 
+                    }
+                });
+
+                // -------------------------------------------------------------
+                // 3. NEW: Block Invalid Paste (Prevents pasting text like "abc")
+                // -------------------------------------------------------------
+                field.addEventListener('paste', function(e) {
+                    e.preventDefault(); // Stop default paste
+                    
+                    // Get pasted text
+                    const clipboardData = e.clipboardData || window.clipboardData;
+                    const pastedData = clipboardData.getData('Text');
+
+                    // Check if numeric using Regex
+                    if (/^-?\d*\.?\d*$/.test(pastedData)) {
+                        // Insert text manually if valid
+                        document.execCommand('insertText', false, pastedData);
+                    } else {
+                        // Optional: Alert user
+                        Swal.fire({
+                            toast: true, position: 'top-end', icon: 'error', 
+                            title: 'Invalid Paste', text: 'Only numbers allowed',
+                            timer: 2000, showConfirmButton: false
+                        });
+                    }
                 });
             });
         }
@@ -1665,13 +1770,65 @@ select.risk-dropdown:not([disabled]) {
         // ================================================
         // INSPECTION PLAN MODULE
         // ================================================
-        const InspectionPlanModule = (function() {
+        const InspectionPlanModule = 
+        (function()
+         {
+        
             const modalTitle = document.getElementById('modal-title');
             const modalContent = document.getElementById('modal-content');
             let currentReportData = null;
             let allHistoryData = [];
             let currentSort = { column: 'inspected_at', direction: 'desc' };
             let searchTerm = '';
+
+
+            // ✅ Function to clear signature
+            window.clearSignature = function() {
+                if(signaturePad) signaturePad.clear();
+            }
+
+            // ✅ Function to Save Everything
+            async function saveInspectionChanges() {
+                const inspectionId = currentReportData.inspection.inspection_id;
+                const notes = document.getElementById('notes-field').textContent.trim();
+                const recommendations = document.getElementById('recs-field').textContent.trim();
+                
+                // Get Signature Data (if not empty)
+                let signatureData = null;
+                if (signaturePad && !signaturePad.isEmpty()) {
+                    signatureData = signaturePad.toDataURL(); // Base64 string
+                }
+
+                // Show loading
+                Swal.fire({ title: 'Saving...', didOpen: () => Swal.showLoading() });
+
+                try {
+                    // Replace with your actual API endpoint
+                    const res = await fetch('http://localhost:3000/api/update-inspection-details', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            inspectionId,
+                            notes,
+                            recommendations,
+                            signature: signatureData
+                        }),
+                        credentials: 'include'
+                    });
+
+                    const result = await res.json();
+
+                    if (result.success) {
+                        Swal.fire('Saved!', 'Inspection record updated successfully.', 'success');
+                        toggleEditMode(); // Exit edit mode
+                    } else {
+                        throw new Error(result.message || 'Save failed');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    Swal.fire('Error', 'Failed to save changes.', 'error');
+                }
+            }
 
             async function loadHistory() {
                 try {
@@ -1898,6 +2055,36 @@ select.risk-dropdown:not([disabled]) {
                         // Generate the report HTML with the correct pressure range (0-10 MPa)
                         modalContent.innerHTML = createReportHTML(result.data, isAdmin);
                         
+                        // ✅ ADD THIS: Initialize Signature Pad after HTML is inserted
+                    setTimeout(() => {
+                        const canvas = document.getElementById('signature-pad');
+                        if (canvas) {
+                            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                            canvas.width = canvas.offsetWidth * ratio;
+                            canvas.height = canvas.offsetHeight * ratio;
+                            canvas.getContext("2d").scale(ratio, ratio);
+
+                            // IMPORTANT: Use the global signaturePad variable
+                            signaturePad = new SignaturePad(canvas, {
+                                backgroundColor: 'rgba(255, 255, 255, 0)'
+                            });
+                            
+                            // Load existing signature if available
+                            if (result.data.inspection.inspector_signature) {
+            signaturePad.fromDataURL(result.data.inspection.inspector_signature);
+        }
+
+                            // In generatePlan > setTimeout block:
+if (result.data.inspection.inspector_signature) {
+    signaturePad.fromDataURL(result.data.inspection.inspector_signature);
+}
+
+                            signaturePad.off(); // Read-only initially
+                        }
+                    }, 100);
+
+
+                        
                         const editButton = document.getElementById('edit-toggle-btn');
                         
                         if (currentUser && currentUser.role === 'admin') {
@@ -1940,7 +2127,7 @@ select.risk-dropdown:not([disabled]) {
             }
 
 
-            // Replace createReportHTML with this version
+            // Replace your existing createReportHTML function with this one
             function createReportHTML(data, isAdmin = false) {
                 const insp = data.inspection;
                 const parts = data.parts;
@@ -1957,17 +2144,37 @@ select.risk-dropdown:not([disabled]) {
                 // Attributes
                 const editableAttr = isAdmin ? 'data-editable="true"' : '';
                 const contentEditableAttr = isAdmin ? 'contenteditable="false"' : '';
-                const tempValidation = isAdmin ? 'data-validation="temp" data-min="-50" data-max="500"' : '';
-                const pressureValidation = isAdmin ? 'data-validation="pressure" data-min="0" data-max="10"' : '';
+      // CHANGE THESE NUMBERS to adjust the allowed range
+const tempValidation = isAdmin ? 'data-validation="temp" data-min="-50" data-max="500"' : '';
+const pressureValidation = isAdmin ? 'data-validation="pressure" data-min="0" data-max="10"' : '';
 
                 // Defaults
                 const defaultNotes = '<span class="text-gray-400 italic placeholder-text">No specific observations recorded.</span>';
                 const defaultRecs = '<span class="text-gray-400 italic placeholder-text">No recommendations provided.</span>';
 
-                const notesContent = (insp.notes && insp.notes.trim() !== "") ? insp.notes : defaultNotes;
-                const recsContent = (insp.recommendations && insp.recommendations.trim() !== "") ? insp.recommendations : defaultRecs;
+                let notesContent = "";
+                    let recsContent = "";
 
-                // 1. Header (MODIFIED: Removed Rev, extended PMT colspan)
+                    try {
+                        // Try to parse if it's JSON
+                        const parsedObj = JSON.parse(insp.notes);
+                        notesContent = parsedObj.observations || "";
+                        recsContent = parsedObj.recommendations || "";
+                    } catch (e) {
+                        // If it's just plain text (old data), put it all in notes
+                        notesContent = insp.notes || "";
+                        recsContent = "";
+                    }
+
+                    // Defaults
+                    if (!notesContent) notesContent = '<span class="text-gray-400 italic placeholder-text">No specific observations recorded.</span>';
+                    if (!recsContent) recsContent = '<span class="text-gray-400 italic placeholder-text">No recommendations provided.</span>';
+
+                    
+
+
+
+                // 1. Header
                 let header = `
                     <div class="mb-6 border-b-2 border-gray-800 pb-4">
                         <div class="flex justify-between items-center mb-4">
@@ -2103,6 +2310,24 @@ select.risk-dropdown:not([disabled]) {
                     </div>
                 `;
 
+                // ✅ DEFINING THE SIGNATURE SECTION
+                let signatureSection = `
+             <div id="signature-container" class="mt-6 border-t-2 border-gray-100 pt-6">
+        <h3 class="text-base font-bold uppercase mb-2 text-gray-700">Inspector Signature</h3>
+        
+        <div class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 relative group" style="width: 300px; height: 150px;">
+            <canvas id="signature-pad" class="w-full h-full touch-none cursor-crosshair"></canvas>
+            </div>
+
+        <div class="mt-2 flex gap-2">
+            <button onclick="clearSignature()" class="text-xs text-red-600 hover:text-red-800 font-medium underline" id="clear-sig-btn" style="display:none;">
+                Clear Signature
+            </button>
+        </div>
+    </div>
+                `;
+
+                // ✅ RETURNING THE COMBINED HTML (Notice signatureSection at the end)
                 return `
                     ${header}
                     ${partsTable}
@@ -2110,6 +2335,7 @@ select.risk-dropdown:not([disabled]) {
                         ${methodsTable}
                         ${imageSection}
                     </div>
+                    ${signatureSection} 
                 `;
             }
 
@@ -2132,7 +2358,7 @@ select.risk-dropdown:not([disabled]) {
             }
 
 
-            async function exportToPPT(data) {
+  async function exportToPPT(data) {
                 try {
                     if (typeof PptxGenJS === 'undefined') {
                         throw new Error("PowerPoint library not loaded. Please check internet connection.");
@@ -2167,26 +2393,21 @@ select.risk-dropdown:not([disabled]) {
                         color: '1F2937', fill: { color: 'F3F4F6' }
                     });
 
-                    // ---------------------------------------------------------
-                    // GRID LAYOUT
-                    // ---------------------------------------------------------
+                    // Header Table
                     let headerRows = [
                         [
-                            // Row 1
                             { text: "Description:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
                             { text: insp.equipment_desc || '-', options: { colspan: 3, fontSize: 9 } },
                             { text: "PLANT UNIT:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
                             { text: "iPETRO", options: { fontSize: 9 } }
                         ],
                         [
-                            // Row 2 (MODIFIED: Removed Rev, extended PMT colspan to 3)
                             { text: "Tag No:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
                             { text: insp.equipment_no || '-', options: { fontSize: 9, bold: true } },
                             { text: "PMT No:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
                             { text: insp.pmt_no || '-', options: { colspan: 3, fontSize: 9 } } 
                         ],
                         [
-                            // Row 3
                             { text: "Design Code:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
                             { text: insp.design_code || '-', options: { colspan: 2, fontSize: 9 } }, 
                             { text: "Insp. Date:", options: { bold: true, fill: 'E5E7EB', fontSize: 9 } },
@@ -2198,19 +2419,20 @@ select.risk-dropdown:not([disabled]) {
                         x: 0.5, y: 0.7, w: 7.27,
                         fontSize: 9, 
                         border: { pt: 1, color: '9CA3AF' },
-                        // Columns: TagLbl, TagVal, PMTLbl, PMTVal, RevLbl, RevVal (grid reference)
                         colW: [1.1, 1.5, 0.8, 1.5, 0.8, 1.5], 
                         margin: 0.05
                     });
 
                     // 2. Component Analysis
+                    const partsSectionY = 1.8;
+                    
                     slide1.addText("Component Analysis", {
-                        x: 0.5, y: 1.8, w: 7.27, h: 0.3,
+                        x: 0.5, y: partsSectionY, w: 7.27, h: 0.3,
                         fontSize: 12, bold: true, color: '374151', fill: { color: 'F9FAFB' }
                     });
 
                     let partHeaders = [
-                        [
+                         [
                             { text: "FLUID", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
                             { text: "COMPONENT", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
                             { text: "CODE", options: { rowspan: 2, fill: 'E5E7EB', bold: true, fontSize: 8, align: 'center', valign: 'middle' } },
@@ -2251,19 +2473,33 @@ select.risk-dropdown:not([disabled]) {
                         ];
                     });
 
+                    const partsTableStartY = partsSectionY + 0.3; 
                     slide1.addTable([...partHeaders, ...partRows], {
-                        x: 0.5, y: 2.1, w: 7.27,
+                        x: 0.5, y: partsTableStartY, w: 7.27,
                         border: { pt: 1, color: 'CCCCCC' }, margin: 0.02, fontSize: 7
                     });
 
-                    const middleSectionY = 6.5;
+                    // --- 🔥 SAFE CALCULATION FIX ---
+                    // 1. Count actual rows: 2 Header rows + data rows
+                    const totalRows = (parts.length || 0) + 2;
+                    
+                    // 2. Use a larger height multiplier (0.65 inches per row)
+                    // This accounts for text wrapping on smaller columns
+                    const estimatedTableHeight = totalRows * 0.65;
+                    
+                    // 3. Calculate Start Y for the next section
+                    let middleSectionY = partsTableStartY + estimatedTableHeight + 0.2;
+                    
+                    // 4. Safety clamp: Ensure it doesn't overlap header if table is empty
+                    if (middleSectionY < 4.0) middleSectionY = 4.0;
 
-                    // 3. Inspection Strategy
+                    // 3. Inspection Strategy & Diagram
                     slide1.addText("Inspection Strategy", {
                         x: 0.5, y: middleSectionY, w: 3.5, h: 0.3,
                         fontSize: 12, bold: true, color: '374151'
                     });
 
+                    let methodTableHeight = 0;
                     if (methods.length > 0) {
                         let methodHeaders = [[
                             { text: "METHOD", options: { fill: 'E5E7EB', bold: true, fontSize: 8 } },
@@ -2275,10 +2511,18 @@ select.risk-dropdown:not([disabled]) {
                             { text: m.coverage || '-', options: { fontSize: 8, align: 'center' } },
                             { text: m.damage_mechanism || '-', options: { fontSize: 8 } }
                         ]);
+                        
                         slide1.addTable([...methodHeaders, ...methodRows], {
                             x: 0.5, y: middleSectionY + 0.4, w: 3.5,
                             border: { pt: 1, color: 'CCCCCC' }, margin: 0.05, fontSize: 8
                         });
+
+                        methodTableHeight = (methods.length + 1) * 0.5; // Increased Estimate
+                    } else {
+                         slide1.addText("No specific methods defined.", {
+                            x: 0.5, y: middleSectionY + 0.4, w: 3.5, h: 0.5, fontSize: 9, italic:true, color:'9CA3AF'
+                         });
+                         methodTableHeight = 0.5;
                     }
 
                     // 4. Equipment Diagram
@@ -2302,30 +2546,77 @@ select.risk-dropdown:not([disabled]) {
                         } catch (e) { console.log('Image error ignored'); }
                     }
 
-                    // 5. Notes & Recommendations
-                    const bottomY = 9.2;
+                    // --- CALCULATION FOR BOTTOM SECTION ---
+                    const middleSectionHeight = Math.max(methodTableHeight + 0.5, 2.6); // Diagram is ~2.6 high
+                    let bottomY = middleSectionY + middleSectionHeight + 0.4;
 
+                    // Check if we need a new slide
+                    if (bottomY > 9.5) {
+                        // If we are running out of space, just push to bottom edge or add new slide logic
+                        // For single page, let's try to fit or accept page break logic in future
+                        // Here we just accept it might be tight
+                    }
+
+                    // 5. Notes & Recommendations
+                    // Observations
                     slide1.addText("Inspector Observations", {
                         x: 0.5, y: bottomY, w: 3.5, h: 0.3,
                         fontSize: 12, bold: true, color: '374151', fill: { color: 'F9FAFB' }
                     });
+                    
                     slide1.addText(inspectorNotes, {
-                        x: 0.5, y: bottomY + 0.3, w: 3.5, h: 1.5,
+                        x: 0.5, y: bottomY + 0.3, w: 3.5, h: 1.1, 
                         fontSize: 9, color: '374151', fill: { color: 'FFFFFF' },
                         border: { pt: 1, color: 'D1D5DB' }, margin: 0.1, valign: 'top'
                     });
 
+                    // Recommendations
                     slide1.addText("Recommendations", {
                         x: 4.2, y: bottomY, w: 3.5, h: 0.3,
                         fontSize: 12, bold: true, color: '374151', fill: { color: 'F9FAFB' }
                     });
+                    
                     slide1.addText(recommendations, {
-                        x: 4.2, y: bottomY + 0.3, w: 3.5, h: 1.5,
+                        x: 4.2, y: bottomY + 0.3, w: 3.5, h: 1.1,
                         fontSize: 9, color: '374151', fill: { color: 'FFFFFF' },
                         border: { pt: 1, color: 'D1D5DB' }, margin: 0.1, valign: 'top'
                     });
 
+                    // 6. Signature Section
+                    // Ensure signature is below boxes
+           // 1. Determine if we have a signature
+                    let signatureDataToUse = null;
+                    
+                    // Check database first
+                    if (insp.inspector_signature) {
+                        signatureDataToUse = insp.inspector_signature;
+                    } 
+                    // Check live canvas second
+                    else if (signaturePad && !signaturePad.isEmpty()) {
+                        signatureDataToUse = signaturePad.toDataURL();
+                    }
+
+                    // 2. ONLY Render if signature exists
+                    if (signatureDataToUse) {
+                        let sigY = bottomY + 1.4 + 0.2; 
+                        const sigX = 0.5;
+
+                        // Add Label
+                        slide1.addText("Inspector Signature", {
+                            x: sigX, y: sigY, w: 3.5, h: 0.3, 
+                            fontSize: 12, bold: true, color: '374151', fill: { color: 'F9FAFB' }
+                        });
+
+                        // Add Image
+                        slide1.addImage({ 
+                            data: signatureDataToUse, 
+                            x: sigX, y: sigY + 0.35, w: 3.0, h: 0.8,
+                            sizing: { type: 'contain', w: 3.0, h: 0.8 }
+                        });
+                    }
+
                     // Footer
+                    // Force footer to bottom of page regardless of flow
                     slide1.addText(`Generated: ${new Date().toLocaleString()} | Inspector: ${insp.inspected_by || 'N/A'}`, {
                         x: 0.5, y: 11.2, w: 7.27, h: 0.3,
                         fontSize: 7, align: 'center', color: '9CA3AF', italic: true
@@ -2540,7 +2831,7 @@ select.risk-dropdown:not([disabled]) {
             // ============================================================
             //  PASTE THE NEW printReport FUNCTION HERE (BELOW triggerPPTExport)
             // ============================================================
-            function printReport() {
+           function printReport() {
                 if (!currentReportData) return;
                 
                 const insp = currentReportData.inspection;
@@ -2554,12 +2845,29 @@ select.risk-dropdown:not([disabled]) {
                 // 2. Change title (browsers use this as the PDF filename)
                 document.title = newTitle;
                 
+                // --- LOGIC TO HIDE SIGNATURE IF EMPTY ---
+                const sigContainer = document.getElementById('signature-container');
+                let wasHidden = false;
+
+                // If signature pad is empty AND there is no saved signature in DB
+                if (signaturePad && signaturePad.isEmpty() && !insp.inspector_signature) {
+                    if (sigContainer) {
+                        sigContainer.style.display = 'none';
+                        wasHidden = true;
+                    }
+                }
+                // ----------------------------------------
+
                 // 3. Print
                 window.print();
                 
-                // 4. Restore title after a short delay
+                // 4. Restore
                 setTimeout(() => {
                     document.title = originalTitle;
+                    // Restore signature box visibility
+                    if (wasHidden && sigContainer) {
+                        sigContainer.style.display = 'block';
+                    }
                 }, 1000);
             }
 
@@ -2574,7 +2882,9 @@ select.risk-dropdown:not([disabled]) {
                 printReport: printReport,
                 triggerExcelExport: triggerExcelExport,
                 handleSearch: handleSearch,
-                handleSort: handleSort
+                handleSort: handleSort,
+                saveInspectionChanges: saveInspectionChanges
+
             };
 
         })();
@@ -2584,6 +2894,7 @@ select.risk-dropdown:not([disabled]) {
         window.triggerPPTExport = InspectionPlanModule.triggerPPTExport;
         window.printReport = InspectionPlanModule.printReport;
         window.triggerExcelExport = InspectionPlanModule.triggerExcelExport;
+        window.saveInspectionChanges = InspectionPlanModule.saveInspectionChanges;
 
         // ================================================
         // APPLICATION INITIALIZATION

@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict KR7wPyPYIt6LBqM5x29t6FTPTJDb7htrsMHcHyMSlOghYk5ifleYyNHZMQPwdIU
+\restrict f2v39alEKW5hZYuA9WvsYSqZqqROXTBV8Bpwa1iexZCTb73ImLbLbKZqTXRrKqo
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
 
--- Started on 2026-01-04 18:21:42
+-- Started on 2026-01-13 12:45:53
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -26,7 +26,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 219 (class 1259 OID 17374)
+-- TOC entry 219 (class 1259 OID 17654)
 -- Name: equipment; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -45,7 +45,7 @@ CREATE TABLE public.equipment (
 ALTER TABLE public.equipment OWNER TO postgres;
 
 --
--- TOC entry 220 (class 1259 OID 17384)
+-- TOC entry 220 (class 1259 OID 17664)
 -- Name: equipment_equipment_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -70,7 +70,7 @@ ALTER SEQUENCE public.equipment_equipment_id_seq OWNED BY public.equipment.equip
 
 
 --
--- TOC entry 221 (class 1259 OID 17385)
+-- TOC entry 221 (class 1259 OID 17665)
 -- Name: equipment_part; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -86,7 +86,7 @@ CREATE TABLE public.equipment_part (
 ALTER TABLE public.equipment_part OWNER TO postgres;
 
 --
--- TOC entry 222 (class 1259 OID 17393)
+-- TOC entry 222 (class 1259 OID 17673)
 -- Name: equipment_part_part_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -111,7 +111,7 @@ ALTER SEQUENCE public.equipment_part_part_id_seq OWNED BY public.equipment_part.
 
 
 --
--- TOC entry 223 (class 1259 OID 17394)
+-- TOC entry 223 (class 1259 OID 17674)
 -- Name: inspection; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -123,14 +123,15 @@ CREATE TABLE public.inspection (
     check_type character varying(50),
     location character varying(100),
     notes text,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    inspector_signature text
 );
 
 
 ALTER TABLE public.inspection OWNER TO postgres;
 
 --
--- TOC entry 224 (class 1259 OID 17403)
+-- TOC entry 224 (class 1259 OID 17683)
 -- Name: inspection_inspection_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -154,7 +155,7 @@ ALTER SEQUENCE public.inspection_inspection_id_seq OWNED BY public.inspection.in
 
 
 --
--- TOC entry 225 (class 1259 OID 17404)
+-- TOC entry 225 (class 1259 OID 17684)
 -- Name: inspection_methods; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -170,7 +171,7 @@ CREATE TABLE public.inspection_methods (
 ALTER TABLE public.inspection_methods OWNER TO postgres;
 
 --
--- TOC entry 226 (class 1259 OID 17412)
+-- TOC entry 226 (class 1259 OID 17692)
 -- Name: inspection_methods_method_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -195,7 +196,7 @@ ALTER SEQUENCE public.inspection_methods_method_id_seq OWNED BY public.inspectio
 
 
 --
--- TOC entry 227 (class 1259 OID 17413)
+-- TOC entry 227 (class 1259 OID 17693)
 -- Name: inspection_part; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -223,7 +224,7 @@ CREATE TABLE public.inspection_part (
 ALTER TABLE public.inspection_part OWNER TO postgres;
 
 --
--- TOC entry 228 (class 1259 OID 17421)
+-- TOC entry 228 (class 1259 OID 17701)
 -- Name: report; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -240,7 +241,7 @@ CREATE TABLE public.report (
 ALTER TABLE public.report OWNER TO postgres;
 
 --
--- TOC entry 229 (class 1259 OID 17430)
+-- TOC entry 229 (class 1259 OID 17710)
 -- Name: report_report_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -264,7 +265,7 @@ ALTER SEQUENCE public.report_report_id_seq OWNED BY public.report.report_id;
 
 
 --
--- TOC entry 230 (class 1259 OID 17431)
+-- TOC entry 230 (class 1259 OID 17711)
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -283,7 +284,7 @@ CREATE TABLE public.users (
 ALTER TABLE public.users OWNER TO postgres;
 
 --
--- TOC entry 231 (class 1259 OID 17442)
+-- TOC entry 231 (class 1259 OID 17722)
 -- Name: users_user_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -308,7 +309,7 @@ ALTER SEQUENCE public.users_user_id_seq OWNED BY public.users.user_id;
 
 
 --
--- TOC entry 4885 (class 2604 OID 17443)
+-- TOC entry 4885 (class 2604 OID 17723)
 -- Name: equipment equipment_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -316,7 +317,7 @@ ALTER TABLE ONLY public.equipment ALTER COLUMN equipment_id SET DEFAULT nextval(
 
 
 --
--- TOC entry 4888 (class 2604 OID 17444)
+-- TOC entry 4888 (class 2604 OID 17724)
 -- Name: equipment_part part_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -324,7 +325,7 @@ ALTER TABLE ONLY public.equipment_part ALTER COLUMN part_id SET DEFAULT nextval(
 
 
 --
--- TOC entry 4891 (class 2604 OID 17445)
+-- TOC entry 4891 (class 2604 OID 17725)
 -- Name: inspection inspection_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -332,7 +333,7 @@ ALTER TABLE ONLY public.inspection ALTER COLUMN inspection_id SET DEFAULT nextva
 
 
 --
--- TOC entry 4893 (class 2604 OID 17446)
+-- TOC entry 4893 (class 2604 OID 17726)
 -- Name: inspection_methods method_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -340,7 +341,7 @@ ALTER TABLE ONLY public.inspection_methods ALTER COLUMN method_id SET DEFAULT ne
 
 
 --
--- TOC entry 4894 (class 2604 OID 17447)
+-- TOC entry 4894 (class 2604 OID 17727)
 -- Name: report report_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -348,7 +349,7 @@ ALTER TABLE ONLY public.report ALTER COLUMN report_id SET DEFAULT nextval('publi
 
 
 --
--- TOC entry 4896 (class 2604 OID 17448)
+-- TOC entry 4896 (class 2604 OID 17728)
 -- Name: users user_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -356,7 +357,7 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 
 
 --
--- TOC entry 5075 (class 0 OID 17374)
+-- TOC entry 5075 (class 0 OID 17654)
 -- Dependencies: 219
 -- Data for Name: equipment; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -364,7 +365,6 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 COPY public.equipment (equipment_id, equipment_no, pmt_no, equipment_desc, is_active, created_at, image_url, design_code) FROM stdin;
 1	V-001	MLK PMT 10101	Air Receiver	t	2025-11-09 12:39:48	https://i.imgur.com/g1f6tst.png	ASME VIII DIV 1
 2	V-002	MLK PMT 10102	Expansion Tank	t	2025-11-09 12:39:48	\N	ASME SEC. VIII DIV. 1 2010 EDITION
-4	V-004	MLK PMT 10104	Hot Water System	t	2025-11-09 12:39:48	\N	\N
 5	V-005	MLK PMT 10105	Absorber for Neutralization of Acid Gases	t	2025-11-09 12:39:48	\N	\N
 6	V-006	MLK PMT 10106	Thermal Deaerator	t	2025-11-09 12:39:48	\N	\N
 9	H-003	MLK PMT 10109	Cooling of Water on Irrigation of An Absorber	t	2025-11-09 12:39:48	\N	\N
@@ -372,11 +372,12 @@ COPY public.equipment (equipment_id, equipment_no, pmt_no, equipment_desc, is_ac
 8	H-002	MLK PMT 10108	Gas Scrubber Cooler	t	2025-11-09 12:39:48	/uploads/image-1766979111450-572954046.jpg	ASME SEC. VIII DIV. 1 2010 EDITION
 7	H-001	MLK PMT 10107	Cooling of Steam- Gas Mix at The Exit of the Reactor	t	2025-11-09 12:39:48	/uploads/image-1763644377143-759814067.png	ASME VIII DIV 1
 3	V-003	MLK PMT 10103	Condensate Vessel	t	2025-11-09 12:39:48	\N	ASME Sec. VIII, Div. I
+4	V-004	MLK PMT 10104	Hot Water System	t	2025-11-09 12:39:48	\N	ASME SEC VIII DIV.1
 \.
 
 
 --
--- TOC entry 5077 (class 0 OID 17385)
+-- TOC entry 5077 (class 0 OID 17665)
 -- Dependencies: 221
 -- Data for Name: equipment_part; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -414,24 +415,25 @@ COPY public.equipment_part (part_id, equipment_id, part_name, is_active, created
 
 
 --
--- TOC entry 5079 (class 0 OID 17394)
+-- TOC entry 5079 (class 0 OID 17674)
 -- Dependencies: 223
 -- Data for Name: inspection; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.inspection (inspection_id, equipment_id, inspector_id, inspected_at, check_type, location, notes, created_at) FROM stdin;
-11	2	1	2025-11-21 03:14:37.114	\N	\N	\N	2025-11-21 03:14:37.116
-12	7	1	2025-12-04 16:42:03.308	\N	\N	\N	2025-12-04 16:42:03.308
-13	7	1	2025-12-07 15:39:53.036	\N	\N	\N	2025-12-07 15:39:53.037
-14	8	3	2025-12-28 23:03:04.486	\N	\N	\N	2025-12-28 23:03:04.484328
-15	7	3	2025-12-29 12:27:46.365	\N	\N	\N	2025-12-29 12:27:46.362333
-16	7	1	2026-01-02 08:26:12.595	\N	\N	\N	2026-01-02 08:26:12.591971
-17	3	3	2026-01-03 15:15:21.911	\N	\N	\N	2026-01-03 15:15:21.91116
+COPY public.inspection (inspection_id, equipment_id, inspector_id, inspected_at, check_type, location, notes, created_at, inspector_signature) FROM stdin;
+11	2	1	2025-11-21 03:14:37.114	\N	\N	\N	2025-11-21 03:14:37.116	\N
+12	7	1	2025-12-04 16:42:03.308	\N	\N	\N	2025-12-04 16:42:03.308	\N
+13	7	1	2025-12-07 15:39:53.036	\N	\N	\N	2025-12-07 15:39:53.037	\N
+14	8	3	2025-12-28 23:03:04.486	\N	\N	\N	2025-12-28 23:03:04.484328	\N
+15	7	3	2025-12-29 12:27:46.365	\N	\N	\N	2025-12-29 12:27:46.362333	\N
+16	7	1	2026-01-02 08:26:12.595	\N	\N	\N	2026-01-02 08:26:12.591971	\N
+17	3	3	2026-01-03 15:15:21.911	\N	\N	\N	2026-01-03 15:15:21.91116	\N
+18	4	1	2026-01-12 18:47:18.937	\N	\N	\N	2026-01-12 18:47:18.933447	\N
 \.
 
 
 --
--- TOC entry 5081 (class 0 OID 17404)
+-- TOC entry 5081 (class 0 OID 17684)
 -- Dependencies: 225
 -- Data for Name: inspection_methods; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -451,11 +453,13 @@ COPY public.inspection_methods (method_id, inspection_id, method_name, coverage,
 16	16	Visual Inspection	External Visual Inspection (100% Coverage)	Atmospheric Corrosion
 17	17	UTTM (Correction Factor)	100% of TML Location	General Corrosion
 18	17	Visual Inspection	External Visual Inspection (100% Coverage)	Atmospheric Corrosion
+19	18	UTTM (Correction Factor)	100% of TML Location	General Corrosion
+20	18	Visual Inspection	External Visual Inspection (100% Coverage)	Atmospheric Corrosion
 \.
 
 
 --
--- TOC entry 5083 (class 0 OID 17413)
+-- TOC entry 5083 (class 0 OID 17693)
 -- Dependencies: 227
 -- Data for Name: inspection_part; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -482,11 +486,13 @@ COPY public.inspection_part (inspection_id, part_id, part_name, phase, fluid, ty
 17	7	Top Head	Gas	Vent Gas	CS	SA-516	70L	Not Provided	100.00	1.00	50.00	0.08	{"ut_reading":null,"visual_finding":null}	LOW	Internal Shell\nGeneral Corrosion\n\nExternal\nATMOSPHERIC CORROSION	ASME Sec. VIII, Div. I
 17	8	Shell	Gas	Vent Gas	CS	SA-516	70L	Not Provided	100.00	1.00	50.00	0.08	{"ut_reading":null,"visual_finding":null}	LOW	Internal Shell\nGeneral Corrosion\n\nExternal\nATMOSPHERIC CORROSION	ASME Sec. VIII, Div. I
 17	9	Bottom Head	Gas	Vent Gas	CS	SA-516	70L	Not Provided	100.00	1.00	50.00	0.08	{"ut_reading":null,"visual_finding":null}	LOW	Internal Shell\nGeneral Corrosion\n\nExternal\nATMOSPHERIC CORROSION	ASME Sec. VIII, Div. I
+18	10	Head	Gas	Vent Gas	CS	SA-516	70L	NIL	150.00	0.10	50.00	0.00	{"ut_reading":null,"visual_finding":null}	LOW	Internal Shell\nGeneral Corrosion\n\nExternal\nATMOSPHERIC CORROSION	ASME SEC VIII DIV.1
+18	11	Shell	Gas	Vent Gas	CS	SA-516	70L	NIL	150.00	0.10	50.00	0.00	{"ut_reading":null,"visual_finding":null}	LOW	Internal Shell\nGeneral Corrosion\n\nExternal\nATMOSPHERIC CORROSION	ASME SEC VIII DIV.1
 \.
 
 
 --
--- TOC entry 5084 (class 0 OID 17421)
+-- TOC entry 5084 (class 0 OID 17701)
 -- Dependencies: 228
 -- Data for Name: report; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -496,7 +502,7 @@ COPY public.report (report_id, inspection_id, report_no, report_type, file_path,
 
 
 --
--- TOC entry 5086 (class 0 OID 17431)
+-- TOC entry 5086 (class 0 OID 17711)
 -- Dependencies: 230
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -532,7 +538,7 @@ SELECT pg_catalog.setval('public.equipment_part_part_id_seq', 31, true);
 -- Name: inspection_inspection_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.inspection_inspection_id_seq', 17, true);
+SELECT pg_catalog.setval('public.inspection_inspection_id_seq', 18, true);
 
 
 --
@@ -541,7 +547,7 @@ SELECT pg_catalog.setval('public.inspection_inspection_id_seq', 17, true);
 -- Name: inspection_methods_method_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.inspection_methods_method_id_seq', 18, true);
+SELECT pg_catalog.setval('public.inspection_methods_method_id_seq', 20, true);
 
 
 --
@@ -563,7 +569,7 @@ SELECT pg_catalog.setval('public.users_user_id_seq', 3, true);
 
 
 --
--- TOC entry 4900 (class 2606 OID 17450)
+-- TOC entry 4900 (class 2606 OID 17730)
 -- Name: equipment equipment_equipment_no_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -572,7 +578,7 @@ ALTER TABLE ONLY public.equipment
 
 
 --
--- TOC entry 4904 (class 2606 OID 17452)
+-- TOC entry 4904 (class 2606 OID 17732)
 -- Name: equipment_part equipment_part_equipment_id_part_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -581,7 +587,7 @@ ALTER TABLE ONLY public.equipment_part
 
 
 --
--- TOC entry 4906 (class 2606 OID 17454)
+-- TOC entry 4906 (class 2606 OID 17734)
 -- Name: equipment_part equipment_part_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -590,7 +596,7 @@ ALTER TABLE ONLY public.equipment_part
 
 
 --
--- TOC entry 4902 (class 2606 OID 17456)
+-- TOC entry 4902 (class 2606 OID 17736)
 -- Name: equipment equipment_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -599,7 +605,7 @@ ALTER TABLE ONLY public.equipment
 
 
 --
--- TOC entry 4910 (class 2606 OID 17458)
+-- TOC entry 4910 (class 2606 OID 17738)
 -- Name: inspection_methods inspection_methods_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -608,7 +614,7 @@ ALTER TABLE ONLY public.inspection_methods
 
 
 --
--- TOC entry 4912 (class 2606 OID 17460)
+-- TOC entry 4912 (class 2606 OID 17740)
 -- Name: inspection_part inspection_part_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -617,7 +623,7 @@ ALTER TABLE ONLY public.inspection_part
 
 
 --
--- TOC entry 4908 (class 2606 OID 17462)
+-- TOC entry 4908 (class 2606 OID 17742)
 -- Name: inspection inspection_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -626,7 +632,7 @@ ALTER TABLE ONLY public.inspection
 
 
 --
--- TOC entry 4914 (class 2606 OID 17464)
+-- TOC entry 4914 (class 2606 OID 17744)
 -- Name: report report_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -635,7 +641,7 @@ ALTER TABLE ONLY public.report
 
 
 --
--- TOC entry 4916 (class 2606 OID 17466)
+-- TOC entry 4916 (class 2606 OID 17746)
 -- Name: report report_report_no_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -644,7 +650,7 @@ ALTER TABLE ONLY public.report
 
 
 --
--- TOC entry 4918 (class 2606 OID 17468)
+-- TOC entry 4918 (class 2606 OID 17748)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -653,7 +659,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 4920 (class 2606 OID 17470)
+-- TOC entry 4920 (class 2606 OID 17750)
 -- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -662,7 +668,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 4921 (class 2606 OID 17471)
+-- TOC entry 4921 (class 2606 OID 17751)
 -- Name: equipment_part fk_ep_equipment; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -671,7 +677,7 @@ ALTER TABLE ONLY public.equipment_part
 
 
 --
--- TOC entry 4924 (class 2606 OID 17476)
+-- TOC entry 4924 (class 2606 OID 17756)
 -- Name: inspection_methods fk_im_inspection; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -680,7 +686,7 @@ ALTER TABLE ONLY public.inspection_methods
 
 
 --
--- TOC entry 4922 (class 2606 OID 17481)
+-- TOC entry 4922 (class 2606 OID 17761)
 -- Name: inspection fk_insp_equipment; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -689,7 +695,7 @@ ALTER TABLE ONLY public.inspection
 
 
 --
--- TOC entry 4925 (class 2606 OID 17486)
+-- TOC entry 4925 (class 2606 OID 17766)
 -- Name: inspection_part fk_insp_part_inspection; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -698,7 +704,7 @@ ALTER TABLE ONLY public.inspection_part
 
 
 --
--- TOC entry 4926 (class 2606 OID 17491)
+-- TOC entry 4926 (class 2606 OID 17771)
 -- Name: inspection_part fk_insp_part_part; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -707,7 +713,7 @@ ALTER TABLE ONLY public.inspection_part
 
 
 --
--- TOC entry 4923 (class 2606 OID 17496)
+-- TOC entry 4923 (class 2606 OID 17776)
 -- Name: inspection fk_insp_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -716,7 +722,7 @@ ALTER TABLE ONLY public.inspection
 
 
 --
--- TOC entry 4927 (class 2606 OID 17501)
+-- TOC entry 4927 (class 2606 OID 17781)
 -- Name: report fk_report_inspection; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -724,11 +730,11 @@ ALTER TABLE ONLY public.report
     ADD CONSTRAINT fk_report_inspection FOREIGN KEY (inspection_id) REFERENCES public.inspection(inspection_id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
--- Completed on 2026-01-04 18:21:42
+-- Completed on 2026-01-13 12:45:53
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict KR7wPyPYIt6LBqM5x29t6FTPTJDb7htrsMHcHyMSlOghYk5ifleYyNHZMQPwdIU
+\unrestrict f2v39alEKW5hZYuA9WvsYSqZqqROXTBV8Bpwa1iexZCTb73ImLbLbKZqTXRrKqo
 

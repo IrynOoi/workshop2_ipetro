@@ -1,3 +1,4 @@
+// InspectionController.js
 const path = require('path');
 // Explicitly point to the .env file in the parent directory
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
@@ -53,6 +54,46 @@ function calculateRiskRatingFromValues(temp, pressure) {
  * Inspection Controller
  * Handles inspection logging, data extraction, and report generation
  */
+
+
+
+/**
+ * Update inspection details (Notes, Recommendations, Signature)
+ * @route POST /api/update-inspection-details
+ */
+exports.updateInspectionDetails = async (req, res) => {
+    const { inspectionId, notes, recommendations, signature } = req.body;
+    
+    try {
+        // We combine notes/recommendations into the 'notes' column as JSON
+        // because your current database schema only has 'notes'.
+        const combinedNotes = JSON.stringify({
+            observations: notes,
+            recommendations: recommendations
+        });
+
+        // Update the inspection record
+        await db.query(
+            `UPDATE inspection 
+             SET notes = $1, 
+                 inspector_signature = $2 
+             WHERE inspection_id = $3`,
+            [combinedNotes, signature, inspectionId]
+        );
+
+        res.json({ 
+            success: true, 
+            message: 'Inspection details updated successfully' 
+        });
+
+    } catch (err) {
+        console.error("Update Error:", err);
+        res.status(500).json({ 
+            success: false, 
+            error: err.message 
+        });
+    }
+};
 
 /**
  * Get inspection history
@@ -150,7 +191,8 @@ exports.getInspectionPlan = async (req, res) => {
                 e.pmt_no, 
                 e.design_code, 
                 e.image_url,
-                i.notes
+                i.notes,
+                i.inspector_signature
              FROM inspection i
              JOIN equipment e ON i.equipment_id = e.equipment_id
              LEFT JOIN users u ON i.inspector_id = u.user_id
