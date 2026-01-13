@@ -1076,6 +1076,16 @@ select.risk-dropdown:not([disabled]) {
                     </button>
 
 
+                    <button id="save-btn" onclick="saveInspectionChanges()" class="btn btn-primary shadow-md hidden bg-green-600 hover:bg-green-700 text-white border-none">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+            </svg>
+            <span class="relative z-10">Save Changes</span>
+        </button>
+
+
+
+
 
 
 
@@ -1788,22 +1798,61 @@ function addValidationListeners() {
             }
 
             // ✅ Function to Save Everything
+           // ✅ Function to Save Everything (Notes, Signature, AND Table Data)
             async function saveInspectionChanges() {
                 const inspectionId = currentReportData.inspection.inspection_id;
-                const notes = document.getElementById('notes-field').textContent.trim();
-                const recommendations = document.getElementById('recs-field').textContent.trim();
+                const notes = document.getElementById('notes-field').innerText.trim(); // Use innerText for cleaner text
+                const recommendations = document.getElementById('recs-field').innerText.trim();
                 
-                // Get Signature Data (if not empty)
+                // 1. Get Signature Data
                 let signatureData = null;
                 if (signaturePad && !signaturePad.isEmpty()) {
                     signatureData = signaturePad.toDataURL(); // Base64 string
                 }
 
+                // 2. Scrape Table Data (The Parts)
+                const partsUpdates = [];
+                const rows = document.querySelectorAll('tr[data-row-part-id]');
+                
+                rows.forEach(row => {
+                    const partId = row.getAttribute('data-row-part-id');
+                    
+                    // Helper to get text from data-field spans
+                    const getVal = (field) => {
+                        const el = row.querySelector(`[data-field="${field}"]`);
+                        return el ? el.innerText.trim() : null;
+                    };
+
+                    // Get Risk Value (Handle Dropdown vs Text)
+                    let riskVal = 'LOW';
+                    const riskSelect = row.querySelector('.risk-dropdown');
+                    if (riskSelect) {
+                        riskVal = riskSelect.value;
+                    } else {
+                        // Fallback for non-admin view (though save shouldn't be called)
+                        riskVal = row.cells[9].innerText.trim(); 
+                    }
+
+                    partsUpdates.push({
+                        part_id: partId,
+                        fluid: getVal('fluid'),
+                        part_name: getVal('part_name'),
+                        design_code: getVal('design_code'),
+                        type: getVal('type'),
+                        spec: getVal('spec'),
+                        grade: getVal('grade'),
+                        insulation: getVal('insulation'),
+                        operating_temp: getVal('operating_temp'),
+                        operating_pressure: getVal('operating_pressure'),
+                        current_risk_rating: riskVal,
+                        corrosion_group: getVal('corrosion_group')
+                    });
+                });
+
                 // Show loading
                 Swal.fire({ title: 'Saving...', didOpen: () => Swal.showLoading() });
 
                 try {
-                    // Replace with your actual API endpoint
                     const res = await fetch('http://localhost:3000/api/update-inspection-details', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1811,7 +1860,8 @@ function addValidationListeners() {
                             inspectionId,
                             notes,
                             recommendations,
-                            signature: signatureData
+                            signature: signatureData,
+                            parts: partsUpdates // Send the array of part updates
                         }),
                         credentials: 'include'
                     });
@@ -1819,14 +1869,22 @@ function addValidationListeners() {
                     const result = await res.json();
 
                     if (result.success) {
-                        Swal.fire('Saved!', 'Inspection record updated successfully.', 'success');
+                        Swal.fire({
+                            title: 'Saved!',
+                            text: 'Inspection record updated successfully.',
+                            icon: 'success',
+                            confirmButtonColor: '#DC2626', // This sets the button to your brand Red
+                            confirmButtonText: 'OK'
+                        });
                         toggleEditMode(); // Exit edit mode
+                        // Optionally refresh data
+                        generatePlan(inspectionId); 
                     } else {
                         throw new Error(result.message || 'Save failed');
                     }
                 } catch (error) {
                     console.error(error);
-                    Swal.fire('Error', 'Failed to save changes.', 'error');
+                    Swal.fire('Error', 'Failed to save changes: ' + error.message, 'error');
                 }
             }
 
@@ -2127,217 +2185,223 @@ if (result.data.inspection.inspector_signature) {
             }
 
 
-            // Replace your existing createReportHTML function with this one
-            function createReportHTML(data, isAdmin = false) {
-                const insp = data.inspection;
-                const parts = data.parts;
-                const methods = data.methods || [];
-                
-                // Risk Colors (for reference)
-                const riskColors = {
-                    'LOW': 'bg-green-200',
-                    'MEDIUM': 'bg-yellow-200',
-                    'HIGH': 'bg-red-200',
-                    'MEDIUM HIGH': 'bg-orange-200'
-                };
-
-                // Attributes
-                const editableAttr = isAdmin ? 'data-editable="true"' : '';
-                const contentEditableAttr = isAdmin ? 'contenteditable="false"' : '';
-      // CHANGE THESE NUMBERS to adjust the allowed range
-const tempValidation = isAdmin ? 'data-validation="temp" data-min="-50" data-max="500"' : '';
-const pressureValidation = isAdmin ? 'data-validation="pressure" data-min="0" data-max="10"' : '';
-
-                // Defaults
-                const defaultNotes = '<span class="text-gray-400 italic placeholder-text">No specific observations recorded.</span>';
-                const defaultRecs = '<span class="text-gray-400 italic placeholder-text">No recommendations provided.</span>';
-
-                let notesContent = "";
-                    let recsContent = "";
-
-                    try {
-                        // Try to parse if it's JSON
-                        const parsedObj = JSON.parse(insp.notes);
-                        notesContent = parsedObj.observations || "";
-                        recsContent = parsedObj.recommendations || "";
-                    } catch (e) {
-                        // If it's just plain text (old data), put it all in notes
-                        notesContent = insp.notes || "";
-                        recsContent = "";
-                    }
-
-                    // Defaults
-                    if (!notesContent) notesContent = '<span class="text-gray-400 italic placeholder-text">No specific observations recorded.</span>';
-                    if (!recsContent) recsContent = '<span class="text-gray-400 italic placeholder-text">No recommendations provided.</span>';
-
-                    
-
-
-
-                // 1. Header
-                let header = `
-                    <div class="mb-6 border-b-2 border-gray-800 pb-4">
-                        <div class="flex justify-between items-center mb-4">
-                            <div class="w-1/4"></div>
-                            <div class="w-2/4 text-center">
-                                <h1 class="text-3xl font-bold text-gray-900">INSPECTION PLAN</h1>
-                                <p class="text-sm text-gray-500 uppercase font-bold">On-Stream Inspection Record</p>
-                            </div>
-                            <div class="w-1/4 text-right text-xs text-gray-400">ID: #${insp.inspection_id}</div>
-                        </div>
-
-                        <table class="w-full border-collapse report-header-table text-sm" width="100%">
-                            <tr>
-                                <td class="p-3 font-bold bg-gray-50 w-1/6 border-r border-gray-200">Description</td>
-                                <td class="p-3 font-medium text-gray-900" colspan="3"><span ${editableAttr} ${contentEditableAttr}>${insp.equipment_desc || '-'}</span></td>
-                                <td class="p-3 font-bold bg-gray-50 w-1/6 border-r border-gray-200">Unit</td>
-                                <td class="p-3 font-medium text-gray-900" colspan="2">iPETRO</td>
-                            </tr>
-                            <tr>
-                                <td class="p-3 font-bold bg-gray-50 border-r border-gray-200">Tag No.</td>
-                                <td class="p-3 font-mono font-bold text-lg text-gray-900"><span ${editableAttr} ${contentEditableAttr}>${insp.equipment_no || '-'}</span></td>
-                                <td class="p-3 font-bold bg-gray-50 w-1/6 border-r border-gray-200">PMT No.</td>
-                                <td class="p-3 font-medium text-gray-900" colspan="3"><span ${editableAttr} ${contentEditableAttr}>${insp.pmt_no || '-'}</span></td>
-                            </tr>
-                        </table>
-                    </div>
-                `;
-
-                // 2. Parts Table
-                let partsTable = `
-                    <div class="mb-8">
-                        <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-red-600 pl-2">Component Analysis</h3>
-                        <table class="w-full border-collapse report-table mb-4 text-sm" width="100%">
-                            <thead class="bg-gray-100 text-gray-800 font-bold uppercase text-xs">
-                                <tr>
-                                    <th class="p-3 border border-gray-300" rowspan="2">Fluid</th>
-                                    <th class="p-3 border border-gray-300" rowspan="2">Component</th>
-                                    <th class="p-3 border border-gray-300" rowspan="2">Code</th>
-                                    <th class="p-3 border border-gray-300" colspan="3">Material</th>
-                                    <th class="p-3 border border-gray-300" rowspan="2">Insul.</th>
-                                    <th class="p-3 border border-gray-300" colspan="2">Op. Param</th>
-                                    <th class="p-3 border border-gray-300" rowspan="2">Risk</th>
-                                    <th class="p-3 border border-gray-300" rowspan="2">C. Group</th>
-                                </tr>
-                                <tr>
-                                    <th class="p-2 border border-gray-300 bg-gray-50">Type</th>
-                                    <th class="p-2 border border-gray-300 bg-gray-50">Spec</th>
-                                    <th class="p-2 border border-gray-300 bg-gray-50">Gr</th>
-                                    <th class="p-2 border border-gray-300 bg-gray-50">T(°C)</th>
-                                    <th class="p-2 border border-gray-300 bg-gray-50">P(MPa)</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-gray-700">
-                                ${parts.map(p => {
-                                    const currentRisk = p.current_risk_rating || 'LOW';
-                                    return `
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.fluid || '-'}</span></td>
-                                        <td class="p-4 font-bold border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.part_name || '-'}</span></td>
-                                        <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.design_code || insp.design_code || '-'}</span></td>
-                                        <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.type || '-'}</span></td>
-                                        <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.spec || '-'}</span></td>
-                                        <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.grade || '-'}</span></td>
-                                        <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.insulation ? (p.insulation.toLowerCase().startsWith('y') ? 'Y' : 'N') : 'N'}</span></td>
-                                        <td class="p-4 text-right font-mono border border-gray-200"><span ${editableAttr} ${contentEditableAttr} ${tempValidation}>${p.operating_temp || p.design_temp || '-'}</span></td>
-                                        <td class="p-4 text-right font-mono border border-gray-200"><span ${editableAttr} ${contentEditableAttr} ${pressureValidation}>${p.operating_pressure || p.design_pressure || '-'}</span></td>
-                                        <td class="p-4 text-center border border-black p-0">
-                                            ${isAdmin ? `
-                                                <select class="risk-dropdown" disabled data-part-id="${p.part_id}" onchange="handleRiskChange(this)">
-                                                    <option value="LOW" ${currentRisk === 'LOW' ? 'selected' : ''}>LOW</option>
-                                                    <option value="MEDIUM" ${currentRisk === 'MEDIUM' ? 'selected' : ''}>MEDIUM</option>
-                                                    <option value="MEDIUM HIGH" ${currentRisk === 'MEDIUM HIGH' ? 'selected' : ''}>MEDIUM HIGH</option>
-                                                    <option value="HIGH" ${currentRisk === 'HIGH' ? 'selected' : ''}>HIGH</option>
-                                                </select>
-                                            ` : `
-                                                <span class="font-bold ${riskColors[currentRisk] || ''} block w-full h-full p-2">${currentRisk}</span>
-                                            `}
-                                        </td>
-                                        <td class="p-4 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${p.corrosion_group || '-'}</span></td>
-                                    </tr>
-                                `}).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-
-                let methodsTable = `
-                    <div class="w-1/2 pr-4 flex flex-col">
-                        <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-blue-600 pl-2">Inspection Strategy</h3>
-                        <table class="w-full border-collapse report-table text-sm mb-6 shadow-sm" width="100%">
-                            <thead class="bg-gray-100 text-gray-800 font-bold uppercase text-xs">
-                                <tr>
-                                    <th class="p-3 text-left border border-gray-300">Method</th>
-                                    <th class="p-3 text-center border border-gray-300">Cvge</th>
-                                    <th class="p-3 text-left border border-gray-300">Mechanism</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-gray-700">
-                                ${methods.map(m => `
-                                    <tr>
-                                        <td class="p-3 font-bold border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${m.method_name || '-'}</span></td>
-                                        <td class="p-3 text-center border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${m.coverage || '-'}</span></td>
-                                        <td class="p-3 border border-gray-200"><span ${editableAttr} ${contentEditableAttr}>${m.damage_mechanism || '-'}</span></td>
-                                    </tr>
-                                `).join('')}
-                                ${methods.length === 0 ? '<tr><td colspan="3" class="p-3 text-center text-gray-400 italic">No specific methods</td></tr>' : ''}
-                            </tbody>
-                        </table>
-                        
-                        <div class="mt-auto flex-grow flex flex-col">
-                            <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-gray-600 pl-2">Observations</h3>
-                            <div id="notes-field" class="editable-notes text-sm bg-gray-50 rounded border border-gray-200 flex-grow min-h-[120px]" ${editableAttr} ${contentEditableAttr}>
-                                ${notesContent}
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                let imageSection = `
-                    <div class="w-1/2 pl-4 flex flex-col border-l-2 border-dashed border-gray-200 report-right-col">
-                        <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-green-600 pl-2">Diagram</h3>
-                        
-                        <div class="img-container bg-white border border-gray-200 rounded p-4 mb-6 flex items-center justify-center shadow-sm" style="height: 250px;">
-                            <img src="${insp.image_url || 'https://placehold.co/600x400/f3f4f6/9ca3af?text=No+Diagram'}" alt="Equipment Diagram" class="report-image object-contain max-h-[240px] w-auto">
-                        </div>
-                        
-                        <div class="mt-auto flex-grow flex flex-col">
-                            <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-yellow-500 pl-2">Recommendations</h3>
-                            <div id="recs-field" class="editable-notes text-sm bg-gray-50 rounded border border-gray-200 flex-grow min-h-[120px]" ${editableAttr} ${contentEditableAttr}>
-                                ${recsContent}
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                // ✅ DEFINING THE SIGNATURE SECTION
-                let signatureSection = `
-             <div id="signature-container" class="mt-6 border-t-2 border-gray-100 pt-6">
-        <h3 class="text-base font-bold uppercase mb-2 text-gray-700">Inspector Signature</h3>
         
-        <div class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 relative group" style="width: 300px; height: 150px;">
-            <canvas id="signature-pad" class="w-full h-full touch-none cursor-crosshair"></canvas>
+ // ================================================
+// COMPLETE CREATE REPORT HTML FUNCTION
+// ================================================
+function createReportHTML(data, isAdmin = false) {
+    const insp = data.inspection;
+    const parts = data.parts;
+    const methods = data.methods || [];
+    
+    // Risk Colors (for reference)
+    const riskColors = {
+        'LOW': 'bg-green-200',
+        'MEDIUM': 'bg-yellow-200',
+        'HIGH': 'bg-red-200',
+        'MEDIUM HIGH': 'bg-orange-200'
+    };
+
+    // Attributes for editable fields
+    const editableAttr = isAdmin ? 'data-editable="true"' : '';
+    const contentEditableAttr = isAdmin ? 'contenteditable="false"' : '';
+    
+    // Validation attributes for table cells
+    const tempValidation = isAdmin ? 'data-validation="temp" data-min="-50" data-max="500"' : '';
+    const pressureValidation = isAdmin ? 'data-validation="pressure" data-min="0" data-max="10"' : '';
+
+    // Defaults for Notes / Recommendations
+    let notesContent = "";
+    let recsContent = "";
+
+    try {
+        // Try to parse if it's JSON
+        const parsedObj = JSON.parse(insp.notes);
+        notesContent = parsedObj.observations || "";
+        recsContent = parsedObj.recommendations || "";
+    } catch (e) {
+        // If it's just plain text (old data), put it all in notes
+        notesContent = insp.notes || "";
+        recsContent = "";
+    }
+
+    // Default placeholders
+    if (!notesContent) notesContent = '<span class="text-gray-400 italic placeholder-text">No specific observations recorded.</span>';
+    if (!recsContent) recsContent = '<span class="text-gray-400 italic placeholder-text">No recommendations provided.</span>';
+
+    // 1. Header Section
+    let header = `
+        <div class="mb-6 border-b-2 border-gray-800 pb-4">
+            <div class="flex justify-between items-center mb-4">
+                <div class="w-1/4"></div>
+                <div class="w-2/4 text-center">
+                    <h1 class="text-3xl font-bold text-gray-900">INSPECTION PLAN</h1>
+                    <p class="text-sm text-gray-500 uppercase font-bold">On-Stream Inspection Record</p>
+                </div>
+                <div class="w-1/4 text-right text-xs text-gray-400">ID: #${insp.inspection_id}</div>
             </div>
 
-        <div class="mt-2 flex gap-2">
-            <button onclick="clearSignature()" class="text-xs text-red-600 hover:text-red-800 font-medium underline" id="clear-sig-btn" style="display:none;">
-                Clear Signature
-            </button>
+            <table class="w-full border-collapse report-header-table text-sm" width="100%">
+                <tr>
+                    <td class="p-3 font-bold bg-gray-50 w-1/6 border-r border-gray-200">Description</td>
+                    <td class="p-3 font-medium text-gray-900" colspan="3"><span>${insp.equipment_desc || '-'}</span></td>
+                    <td class="p-3 font-bold bg-gray-50 w-1/6 border-r border-gray-200">Unit</td>
+                    <td class="p-3 font-medium text-gray-900" colspan="2">iPETRO</td>
+                </tr>
+                <tr>
+                    <td class="p-3 font-bold bg-gray-50 border-r border-gray-200">Tag No.</td>
+                    <td class="p-3 font-mono font-bold text-lg text-gray-900"><span>${insp.equipment_no || '-'}</span></td>
+                    <td class="p-3 font-bold bg-gray-50 w-1/6 border-r border-gray-200">PMT No.</td>
+                    <td class="p-3 font-medium text-gray-900" colspan="3"><span>${insp.pmt_no || '-'}</span></td>
+                </tr>
+            </table>
         </div>
-    </div>
-                `;
+    `;
 
-                // ✅ RETURNING THE COMBINED HTML (Notice signatureSection at the end)
-                return `
-                    ${header}
-                    ${partsTable}
-                    <div class="flex mt-6 report-split-container items-stretch">
-                        ${methodsTable}
-                        ${imageSection}
-                    </div>
-                    ${signatureSection} 
-                `;
-            }
+    // 2. Parts Table Rows Generation
+    let htmlRows = parts.map(p => {
+        let riskColor = 'bg-white';
+        // Determine background color based on risk rating
+        if (p.current_risk_rating === 'HIGH') riskColor = 'bg-red-200';
+        else if (p.current_risk_rating === 'MEDIUM') riskColor = 'bg-yellow-200';
+        else if (p.current_risk_rating === 'LOW') riskColor = 'bg-green-200';
+        else if (p.current_risk_rating === 'MEDIUM HIGH') riskColor = 'bg-orange-200';
+
+        return `
+        <tr class="hover:bg-gray-50" data-row-part-id="${p.part_id}">
+            <td class="p-4 text-center border border-gray-200"><span data-field="fluid" ${editableAttr} ${contentEditableAttr}>${p.fluid || '-'}</span></td>
+            <td class="p-4 font-bold border border-gray-200"><span data-field="part_name" ${editableAttr} ${contentEditableAttr}>${p.part_name || '-'}</span></td>
+            <td class="p-4 text-center border border-gray-200"><span data-field="design_code" ${editableAttr} ${contentEditableAttr}>${p.design_code || insp.design_code || '-'}</span></td>
+            <td class="p-4 text-center border border-gray-200"><span data-field="type" ${editableAttr} ${contentEditableAttr}>${p.type || '-'}</span></td>
+            <td class="p-4 text-center border border-gray-200"><span data-field="spec" ${editableAttr} ${contentEditableAttr}>${p.spec || '-'}</span></td>
+            <td class="p-4 text-center border border-gray-200"><span data-field="grade" ${editableAttr} ${contentEditableAttr}>${p.grade || '-'}</span></td>
+            <td class="p-4 text-center border border-gray-200"><span data-field="insulation" ${editableAttr} ${contentEditableAttr}>${p.insulation ? (p.insulation.toLowerCase().startsWith('y') ? 'Y' : 'N') : 'N'}</span></td>
+            <td class="p-4 text-right font-mono border border-gray-200"><span data-field="operating_temp" ${editableAttr} ${contentEditableAttr} ${tempValidation}>${p.operating_temp || p.design_temp || '-'}</span></td>
+            <td class="p-4 text-right font-mono border border-gray-200"><span data-field="operating_pressure" ${editableAttr} ${contentEditableAttr} ${pressureValidation}>${p.operating_pressure || p.design_pressure || '-'}</span></td>
+            <td class="p-4 text-center border border-gray-200 p-0 ${riskColor}">
+                ${isAdmin ? `
+                    <select class="risk-dropdown" disabled data-part-id="${p.part_id}" onchange="handleRiskChange(this)">
+                        <option value="LOW" ${p.current_risk_rating === 'LOW' ? 'selected' : ''}>LOW</option>
+                        <option value="MEDIUM" ${p.current_risk_rating === 'MEDIUM' ? 'selected' : ''}>MEDIUM</option>
+                        <option value="MEDIUM HIGH" ${p.current_risk_rating === 'MEDIUM HIGH' ? 'selected' : ''}>MEDIUM HIGH</option>
+                        <option value="HIGH" ${p.current_risk_rating === 'HIGH' ? 'selected' : ''}>HIGH</option>
+                    </select>
+                ` : `<span class="font-bold block w-full h-full p-2">${p.current_risk_rating || 'LOW'}</span>`}
+            </td>
+            <td class="p-4 text-center border border-gray-200"><span data-field="corrosion_group" ${editableAttr} ${contentEditableAttr}>${p.corrosion_group || '-'}</span></td>
+        </tr>`;
+    }).join('');
+
+    // 3. Construct Parts Table
+    let partsTable = `
+        <div class="mb-8">
+            <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-red-600 pl-2">Component Analysis</h3>
+            <table class="w-full border-collapse report-table mb-4 text-sm" width="100%">
+                <thead class="bg-gray-100 text-gray-800 font-bold uppercase text-xs">
+                    <tr>
+                        <th class="p-3 border border-gray-300" rowspan="2">Fluid</th>
+                        <th class="p-3 border border-gray-300" rowspan="2">Component</th>
+                        <th class="p-3 border border-gray-300" rowspan="2">Code</th>
+                        <th class="p-3 border border-gray-300" colspan="3">Material</th>
+                        <th class="p-3 border border-gray-300" rowspan="2">Insul.</th>
+                        <th class="p-3 border border-gray-300" colspan="2">Op. Param</th>
+                        <th class="p-3 border border-gray-300" rowspan="2">Risk</th>
+                        <th class="p-3 border border-gray-300" rowspan="2">C. Group</th>
+                    </tr>
+                    <tr>
+                        <th class="p-2 border border-gray-300 bg-gray-50">Type</th>
+                        <th class="p-2 border border-gray-300 bg-gray-50">Spec</th>
+                        <th class="p-2 border border-gray-300 bg-gray-50">Gr</th>
+                        <th class="p-2 border border-gray-300 bg-gray-50">T(°C)</th>
+                        <th class="p-2 border border-gray-300 bg-gray-50">P(MPa)</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    ${htmlRows}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    // 4. Methods Table
+    let methodsTable = `
+        <div class="w-1/2 pr-4 flex flex-col">
+            <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-blue-600 pl-2">Inspection Strategy</h3>
+            <table class="w-full border-collapse report-table text-sm mb-6 shadow-sm" width="100%">
+                <thead class="bg-gray-100 text-gray-800 font-bold uppercase text-xs">
+                    <tr>
+                        <th class="p-3 text-left border border-gray-300">Method</th>
+                        <th class="p-3 text-center border border-gray-300">Cvge</th>
+                        <th class="p-3 text-left border border-gray-300">Mechanism</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    ${methods.map(m => `
+                        <tr>
+                            <td class="p-3 font-bold border border-gray-200"><span>${m.method_name || '-'}</span></td>
+                            <td class="p-3 text-center border border-gray-200"><span>${m.coverage || '-'}</span></td>
+                            <td class="p-3 border border-gray-200"><span>${m.damage_mechanism || '-'}</span></td>
+                        </tr>
+                    `).join('')}
+                    ${methods.length === 0 ? '<tr><td colspan="3" class="p-3 text-center text-gray-400 italic">No specific methods</td></tr>' : ''}
+                </tbody>
+            </table>
+            
+            <div class="mt-auto flex-grow flex flex-col">
+                <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-gray-600 pl-2">Observations</h3>
+                <div id="notes-field" class="editable-notes text-sm bg-gray-50 rounded border border-gray-200 flex-grow min-h-[120px]" ${editableAttr} ${contentEditableAttr}>
+                    ${notesContent}
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 5. Image Section
+    let imageSection = `
+        <div class="w-1/2 pl-4 flex flex-col border-l-2 border-dashed border-gray-200 report-right-col">
+            <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-green-600 pl-2">Diagram</h3>
+            
+            <div class="img-container bg-white border border-gray-200 rounded p-4 mb-6 flex items-center justify-center shadow-sm" style="height: 250px;">
+                <img src="${insp.image_url || 'https://placehold.co/600x400/f3f4f6/9ca3af?text=No+Diagram'}" alt="Equipment Diagram" class="report-image object-contain max-h-[240px] w-auto">
+            </div>
+            
+            <div class="mt-auto flex-grow flex flex-col">
+                <h3 class="text-base font-bold uppercase mb-2 text-gray-700 border-l-4 border-yellow-500 pl-2">Recommendations</h3>
+                <div id="recs-field" class="editable-notes text-sm bg-gray-50 rounded border border-gray-200 flex-grow min-h-[120px]" ${editableAttr} ${contentEditableAttr}>
+                    ${recsContent}
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 6. Signature Section
+    let signatureSection = `
+        <div id="signature-container" class="mt-6 border-t-2 border-gray-100 pt-6">
+            <h3 class="text-base font-bold uppercase mb-2 text-gray-700">Inspector Signature</h3>
+            
+            <div class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 relative group" style="width: 300px; height: 150px;">
+                <canvas id="signature-pad" class="w-full h-full touch-none cursor-crosshair"></canvas>
+            </div>
+
+            <div class="mt-2 flex gap-2">
+                <button onclick="clearSignature()" class="text-xs text-red-600 hover:text-red-800 font-medium underline" id="clear-sig-btn" style="display:none;">
+                    Clear Signature
+                </button>
+            </div>
+        </div>
+    `;
+
+    // 7. Combine & Return
+    return `
+        ${header}
+        ${partsTable}
+        <div class="flex mt-6 report-split-container items-stretch">
+            ${methodsTable}
+            ${imageSection}
+        </div>
+        ${signatureSection} 
+    `;
+}
 
 
             /**

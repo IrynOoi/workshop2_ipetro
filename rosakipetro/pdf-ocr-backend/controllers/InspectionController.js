@@ -3,12 +3,10 @@ const path = require('path');
 // Explicitly point to the .env file in the parent directory
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
-// inspection controller.js
 const db = require('../config/db');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 // Add this helper function to validate temperature and pressure ranges
-
 function validateOperatingParams(temp, pressure) {
     const errors = [];
     
@@ -51,47 +49,89 @@ function calculateRiskRatingFromValues(temp, pressure) {
 }
 
 /**
- * Inspection Controller
- * Handles inspection logging, data extraction, and report generation
- */
-
-
-
-/**
- * Update inspection details (Notes, Recommendations, Signature)
+ * Update inspection details (Notes, Recommendations, Signature AND Parts Data)
  * @route POST /api/update-inspection-details
  */
 exports.updateInspectionDetails = async (req, res) => {
-    const { inspectionId, notes, recommendations, signature } = req.body;
+    const { inspectionId, notes, recommendations, signature, parts } = req.body;
     
+    // Use a client for transaction support
+    const client = typeof db.pool !== 'undefined' ? await db.pool.connect() : await db.connect();
+
     try {
-        // We combine notes/recommendations into the 'notes' column as JSON
-        // because your current database schema only has 'notes'.
+        await client.query('BEGIN');
+
+        // 1. Update Main Inspection Record (Notes & Signature)
         const combinedNotes = JSON.stringify({
             observations: notes,
             recommendations: recommendations
         });
 
-        // Update the inspection record
-        await db.query(
+        // Only update signature if provided, otherwise keep existing (COALESCE)
+        await client.query(
             `UPDATE inspection 
              SET notes = $1, 
-                 inspector_signature = $2 
+                 inspector_signature = COALESCE($2, inspector_signature)
              WHERE inspection_id = $3`,
-            [combinedNotes, signature, inspectionId]
+            [combinedNotes, signature || null, inspectionId]
         );
+
+        // 2. Update Parts Data (Loop through the array from frontend)
+        if (parts && parts.length > 0) {
+            for (const part of parts) {
+                // Ensure numeric values are valid or null
+                const opTemp = (part.operating_temp === '-' || part.operating_temp === '') ? null : parseFloat(part.operating_temp);
+                const opPress = (part.operating_pressure === '-' || part.operating_pressure === '') ? null : parseFloat(part.operating_pressure);
+
+                await client.query(
+                    `UPDATE inspection_part 
+                     SET fluid = $1,
+                         part_name = $2,
+                         design_code = $3,
+                         type = $4,
+                         spec = $5,
+                         grade = $6,
+                         insulation = $7,
+                         operating_temp = $8,
+                         operating_pressure = $9,
+                         current_risk_rating = $10,
+                         corrosion_group = $11
+                     WHERE inspection_id = $12 AND part_id = $13`,
+                    [
+                        part.fluid,
+                        part.part_name,
+                        part.design_code,
+                        part.type,
+                        part.spec,
+                        part.grade,
+                        part.insulation,
+                        opTemp,
+                        opPress,
+                        part.current_risk_rating,
+                        part.corrosion_group,
+                        inspectionId,
+                        part.part_id
+                    ]
+                );
+            }
+        }
+
+        await client.query('COMMIT');
 
         res.json({ 
             success: true, 
-            message: 'Inspection details updated successfully' 
+            message: 'Inspection plan updated successfully' 
         });
 
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error("Update Error:", err);
         res.status(500).json({ 
             success: false, 
             error: err.message 
         });
+    } finally {
+        if(client.release) client.release();
     }
 };
 
@@ -244,8 +284,6 @@ exports.getInspectionPlan = async (req, res) => {
 exports.saveData = async (req, res) => {
     const { data } = req.body;
     
-    // For transactions, we need a client
-    // If db.pool exists, use it. If db IS the pool/client, use it directly.
     const client = typeof db.pool !== 'undefined' ? await db.pool.connect() : await db.connect();
     
     try {
@@ -350,14 +388,11 @@ exports.saveData = async (req, res) => {
     }
 };
 
-
 // Add API endpoint to update risk rating
 exports.updateRiskRating = async (req, res) => {
     const { inspectionId, partId, temperature, pressure, riskRating } = req.body;
     
     try {
-        // If a manual risk rating is provided (dropdown change), use it.
-        // Otherwise, calculate based on temperature/pressure (auto-calc).
         let newRiskRating = riskRating;
         
         if (!newRiskRating) {
@@ -426,7 +461,6 @@ exports.deleteInspection = async (req, res) => {
     }
 };
 
-
 /**
  * Extract data from technical drawing using AI (Gemini)
  * @route POST /api/extract-data
@@ -494,9 +528,8 @@ exports.extractData = async (req, res) => {
             }
         `;
 
-
-        const apiKey = process.env.GOOGLE_API_KEY ;
-        const MODEL_NAME = "gemini-2.5-flash";
+        const apiKey = process.env.GOOGLE_API_KEY;
+        const MODEL_NAME = "gemini-2.0-flash";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${apiKey}`;
 
         const payload = { 
